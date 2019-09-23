@@ -32,7 +32,7 @@ i.Transient(func() Repository {
 
 To make (resolve) an abstraction:
 
-```
+```go
 i.Make(func(r Repository) {
   // r will be an instance of UserRepository
 })
