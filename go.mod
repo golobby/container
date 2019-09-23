@@ -1,5 +1,3 @@
-module go-container
+module ioc
 
-go 1.13
-
-require go.uber.org/dig v1.7.0
+go 1.11
