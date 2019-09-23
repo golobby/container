@@ -40,4 +40,4 @@ i.Make(func(r Repository) {
 
 ## License
 
-PhpRouter is initially created by [@miladrahimi](https://github.com/miladrahimi) and [@amirrezaask](https://github.com/amirrezaask) and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
+GoLobby IoC is initially created by [@miladrahimi](https://github.com/miladrahimi) and [@amirrezaask](https://github.com/amirrezaask) and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
