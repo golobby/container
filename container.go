@@ -4,7 +4,12 @@ import (
 	"reflect"
 )
 
-// binding holds a resolver, an instance and the resolving information
+// invoke will call the given function (resolver) and return its return value
+func invoke(resolver interface{}) interface{} {
+	return reflect.ValueOf(resolver).Call([]reflect.Value{})[0].Interface()
+}
+
+// binding holds a resolver and its resolving information
 type binding struct {
 	resolver  interface{}
 	singleton bool
@@ -17,25 +22,24 @@ func (b binding) resolve() interface{} {
 		return b.instance
 	}
 
-	return resolve(b.resolver)
+	return invoke(b.resolver)
 }
 
-// resolve will invoke the given function and return the concrete
-func resolve(resolver interface{}) interface{} {
-	return reflect.ValueOf(resolver).Call([]reflect.Value{})[0].Interface()
-}
-
-// Container is the IoC container that holds the bindings
+// container is the IoC container which holds all of the bindings
 var container = map[string]binding{}
 
-// bind will bind a concrete to an abstraction
+// bind will bind an abstraction to a concrete
 func bind(resolver interface{}, singleton bool, instance interface{}) {
 	if reflect.TypeOf(resolver).Kind() != reflect.Func {
-		panic("the argument passed to Singleton()/Transient() is not a function")
+		panic("the argument passed to Singleton() or Transient() methods is not a function")
+	}
+
+	if reflect.TypeOf(resolver).NumIn() != 0 {
+		panic("the resolver function cannot take any argument")
 	}
 
 	if reflect.TypeOf(resolver).NumOut() != 1 {
-		panic("The resolver must only return with abstraction type")
+		panic("the resolver function must only return the abstraction type")
 	}
 
 	container[reflect.TypeOf(resolver).Out(0).String()] = binding{
@@ -45,17 +49,21 @@ func bind(resolver interface{}, singleton bool, instance interface{}) {
 	}
 }
 
-// Singleton will bind a singleton concrete to an abstraction
+// Singleton will bind an abstraction to a singleton concrete
+// It takes a resolver function which returns the concrete and its return type matches the abstraction
 func Singleton(function interface{}) {
-	bind(function, true, resolve(function))
+	bind(function, true, invoke(function))
 }
 
-// Transient will bind a transient concrete to an abstraction
+// Transient will bind an abstraction to a transient concrete
+// It takes a resolver function which returns the concrete and its return type matches the abstraction
 func Transient(function interface{}) {
 	bind(function, false, nil)
 }
 
 // Make will resolve the given abstraction and return related concrete
+// It takes a function with one argument of the abstraction type,
+// the Container invokes the function an pass the related create
 func Make(function interface{}) {
 	if reflect.TypeOf(function).Kind() != reflect.Func {
 		panic("the argument passed to Make() is not a function")
