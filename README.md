@@ -43,7 +43,7 @@ To make (resolve) a concrete by its abstraction:
 
 ```go
 container.Make(func(a Abstraction) {
-  // a will be an concrete of Abstraction
+  // a will be concrete of Abstraction
 })
 ```
 
@@ -57,4 +57,6 @@ container.Make(func(m Mailer) {
 
 ## License
 
-GoLobby IoC is initially created by [@miladrahimi](https://github.com/miladrahimi) and [@amirrezaask](https://github.com/amirrezaask) and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
+GoLobby Container is initially created by 
+[@miladrahimi](https://github.com/miladrahimi) and [@amirrezaask](https://github.com/amirrezaask),
+and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
