@@ -13,7 +13,7 @@ type binding struct {
 
 // resolve will return the concrete of related abstraction
 func (b binding) resolve() interface{} {
-	if b.singleton && b.instance != nil {
+	if b.singleton {
 		return b.instance
 	}
 
@@ -26,10 +26,10 @@ func resolve(resolver interface{}) interface{} {
 }
 
 // Container is the IoC container that holds the bindings
-type Container map[string]binding
+var container = map[string]binding{}
 
 // bind will bind a concrete to an abstraction
-func (c Container) bind(resolver interface{}, singleton bool, instance interface{}) {
+func bind(resolver interface{}, singleton bool, instance interface{}) {
 	if reflect.TypeOf(resolver).Kind() != reflect.Func {
 		panic("the argument passed to Singleton()/Transient() is not a function")
 	}
@@ -38,7 +38,7 @@ func (c Container) bind(resolver interface{}, singleton bool, instance interface
 		panic("The resolver must only return with abstraction type")
 	}
 
-	c[reflect.TypeOf(resolver).Out(0).String()] = binding{
+	container[reflect.TypeOf(resolver).Out(0).String()] = binding{
 		singleton: singleton,
 		resolver:  resolver,
 		instance:  instance,
@@ -46,17 +46,17 @@ func (c Container) bind(resolver interface{}, singleton bool, instance interface
 }
 
 // Singleton will bind a singleton concrete to an abstraction
-func (c Container) Singleton(function interface{}) {
-	c.bind(function, true, resolve(function))
+func Singleton(function interface{}) {
+	bind(function, true, resolve(function))
 }
 
 // Transient will bind a transient concrete to an abstraction
-func (c Container) Transient(function interface{}) {
-	c.bind(function, false, nil)
+func Transient(function interface{}) {
+	bind(function, false, nil)
 }
 
 // Make will resolve the given abstraction and return related concrete
-func (c Container) Make(function interface{}) {
+func Make(function interface{}) {
 	if reflect.TypeOf(function).Kind() != reflect.Func {
 		panic("the argument passed to Make() is not a function")
 	}
@@ -67,7 +67,7 @@ func (c Container) Make(function interface{}) {
 
 	abstraction := reflect.TypeOf(function).In(0).String()
 
-	if concrete, ok := c[abstraction]; ok {
+	if concrete, ok := container[abstraction]; ok {
 		arguments := []reflect.Value{reflect.ValueOf(concrete.resolve())}
 		reflect.ValueOf(function).Call(arguments)
 	} else {
