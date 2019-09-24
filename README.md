@@ -1,4 +1,4 @@
-# IoC Container
+# Container
 A IoC Container written in Go
 
 ## Documentation
