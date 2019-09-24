@@ -1,5 +1,5 @@
 # Container
-A IoC Container written in Go
+An IoC Container written in Go
 
 ## Documentation
 
@@ -7,34 +7,51 @@ A IoC Container written in Go
 To install this package run following command in the root of your project
 
 ```bash
-go get github.com/golobby/ioc
+go get github.com/golobby/container
 ```
 
 ### Binding
-To bind an abstraction to a concrete for further singletion resolution:
+To bind an abstraction to a concrete for further singleton resolutions:
 
 ```go
-i := ioc.Container{}
-i.Singleton(func() Repository {
-  return &UserRepository{}
+container.Singleton(func() Abstraction {
+  return Implementation
 })
 ```
-And to bind an abstraction to a concrete for further transient resolution:
+
+And to bind an abstraction to a concrete for further transient resolutions:
 
 ```go
-i := ioc.Container{}
-i.Transient(func() Repository {
-  return &UserRepository{}
+container.Transient(func() Abstraction {
+  return Implementation
+})
+```
+
+For example:
+
+```go
+import "github.com/golobby/container"
+
+container.Singleton(func() Mailer {
+  return &Gmail{}
 })
 ```
 
 ### Resolving
 
-To make (resolve) an abstraction:
+To make (resolve) a concrete by its abstraction:
 
 ```go
-i.Make(func(r Repository) {
-  // r will be an instance of UserRepository
+container.Make(func(a Abstraction) {
+  // a will be an concrete of Abstraction
+})
+```
+
+For example:
+
+```go
+container.Make(func(m Mailer) {
+  m.Send("info@miladrahimi.com", "Hello!")
 })
 ```
 
