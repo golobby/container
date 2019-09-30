@@ -69,16 +69,18 @@ func Make(function interface{}) {
 		panic("the argument passed to Make() is not a function")
 	}
 
-	if reflect.TypeOf(function).NumIn() != 1 {
-		panic("Make() takes one argument which is the abstraction")
+	argumentsCount := reflect.TypeOf(function).NumIn();
+	arguments := make([]reflect.Value, argumentsCount)
+
+	for i := 0; i < argumentsCount; i++ {
+		abstraction := reflect.TypeOf(function).In(i).String()
+
+		if concrete, ok := container[abstraction]; ok {
+			arguments[i] = reflect.ValueOf(concrete.resolve())
+		} else {
+			panic("There is no concrete for " + abstraction)
+		}
 	}
 
-	abstraction := reflect.TypeOf(function).In(0).String()
-
-	if concrete, ok := container[abstraction]; ok {
-		arguments := []reflect.Value{reflect.ValueOf(concrete.resolve())}
-		reflect.ValueOf(function).Call(arguments)
-	} else {
-		panic("There is no concrete for " + abstraction)
-	}
+	reflect.ValueOf(function).Call(arguments)
 }
