@@ -1,9 +1,13 @@
 [![Build Status](https://travis-ci.org/golobby/container.svg?branch=master)](https://travis-ci.org/golobby/container)
 
 # Container
-An IoC Container written in Go
+An IoC Container written in Go.
+It provides simple, fluent and easy-to-use APIs to make dependency injection in GoLang very easier.
 
 ## Documentation
+
+### Supported Versions
+It requires Go `v1.11` or newer versions.
 
 ### Installation
 To install this package run following command in the root of your project
@@ -21,6 +25,8 @@ container.Singleton(func() Abstraction {
 })
 ```
 
+It invokes the resolver function once and always return the same object each time you call `make()` method.
+
 And to bind an abstraction to a concrete for further transient resolutions:
 
 ```go
@@ -29,43 +35,53 @@ container.Transient(func() Abstraction {
 })
 ```
 
-For example:
+It invokes the resolver function to provide a brand new object each time you call `make()` method.
+
+Take a look at examples below:
+
+Singleton example:
 
 ```go
-import "github.com/golobby/container"
+container.Singleton(func() Database {
+  return &MySQL{}
+})
+```
 
-container.Singleton(func() Mailer {
-  return &Gmail{}
+Transient example:
+
+```go
+container.Transient(func() Shape {
+  return &Rectangle{}
 })
 ```
 
 ### Resolving
 
-To make (resolve) a concrete by its abstraction:
+To make a concrete by its abstraction:
 
 ```go
 container.Make(func(a Abstraction) {
-  // a will be concrete of Abstraction
+  // a will be a concrete of Abstraction
 })
 ```
 
 For example:
 
 ```go
-container.Make(func(m Mailer) {
-  // m is an instance of Gmail
-  m.Send("info@miladrahimi.com", "Hello!")
+container.Make(func(db Database) {
+  // db is an instance of MySQL
+  db.Query("...")
 })
 ```
 
 You can resolve multiple abstractions:
 
 ```go
-container.Make(func(m Mailer, s Shape) {
-  // m is an instance of Gmail
-  // s is an instance of Shape (like Rectangle)
-  m.Send("info@miladrahimi.com", "Hello!");
-  println(s.Area())
+container.Make(func(db Database, s Shape) {
+  // db is an instance of MySQL
+  // s is an instance of Rectangle
+  db.Query("...")
+  s.Area()
 })
 ```
 
