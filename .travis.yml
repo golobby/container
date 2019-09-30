@@ -13,7 +13,7 @@ before_install:
 
 script:
   - go build
-  - goveralls -v -race ./... -service=travis-ci
+  - goveralls -v -race -service=travis-ci
 
 notifications:
   email:
