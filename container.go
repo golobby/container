@@ -1,15 +1,18 @@
+// Container is an IoC Container for Go projects.
+// It provides simple, fluent and easy-to-use APIs to make dependency injection in GoLang very easier.
+
 package container
 
 import (
 	"reflect"
 )
 
-// invoke will call the given function (resolver) and return its return value
+// invoke will call the given resolver function and return its return value
 func invoke(resolver interface{}) interface{} {
 	return reflect.ValueOf(resolver).Call([]reflect.Value{})[0].Interface()
 }
 
-// binding holds a resolver and its resolving information
+// binding is a struct to holds a resolver and its resolving information
 type binding struct {
 	resolver  interface{}
 	singleton bool
@@ -25,7 +28,7 @@ func (b binding) resolve() interface{} {
 	return invoke(b.resolver)
 }
 
-// container is the IoC container which holds all of the bindings
+// container is the IoC container which keeps all of the bindings
 var container = map[string]binding{}
 
 // bind will bind an abstraction to a concrete
@@ -49,38 +52,38 @@ func bind(resolver interface{}, singleton bool, instance interface{}) {
 	}
 }
 
-// Singleton will bind an abstraction to a singleton concrete
-// It takes a resolver function which returns the concrete and its return type matches the abstraction
-func Singleton(function interface{}) {
-	bind(function, true, invoke(function))
+// Singleton will bind an abstraction to a concrete for further singleton resolutions.
+// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+func Singleton(resolverFunction interface{}) {
+	bind(resolverFunction, true, invoke(resolverFunction))
 }
 
-// Transient will bind an abstraction to a transient concrete
-// It takes a resolver function which returns the concrete and its return type matches the abstraction
-func Transient(function interface{}) {
-	bind(function, false, nil)
+// Transient will bind an abstraction to a concrete for further transient resolutions.
+// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+func Transient(resolverFunction interface{}) {
+	bind(resolverFunction, false, nil)
 }
 
-// Make will resolve the given abstraction and return related concrete
-// It takes a function with one argument of the abstraction type,
-// the Container invokes the function an pass the related create
-func Make(function interface{}) {
-	if reflect.TypeOf(function).Kind() != reflect.Func {
-		panic("the argument passed to Make() is not a function")
+// Make will resolve the dependency and return the concrete of given abstraction.
+// It takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be resolved,
+// the Container invokes the receiver function and pass the related concretes
+func Make(receiverFunction interface{}) {
+	if reflect.TypeOf(receiverFunction).Kind() != reflect.Func {
+		panic("the argument (receiver) passed to Make() is not a function")
 	}
 
-	argumentsCount := reflect.TypeOf(function).NumIn();
+	argumentsCount := reflect.TypeOf(receiverFunction).NumIn();
 	arguments := make([]reflect.Value, argumentsCount)
 
 	for i := 0; i < argumentsCount; i++ {
-		abstraction := reflect.TypeOf(function).In(i).String()
+		abstraction := reflect.TypeOf(receiverFunction).In(i).String()
 
 		if concrete, ok := container[abstraction]; ok {
 			arguments[i] = reflect.ValueOf(concrete.resolve())
 		} else {
-			panic("There is no concrete for " + abstraction)
+			panic("There is no concrete bound for " + abstraction)
 		}
 	}
 
-	reflect.ValueOf(function).Call(arguments)
+	reflect.ValueOf(receiverFunction).Call(arguments)
 }
