@@ -51,7 +51,18 @@ For example:
 
 ```go
 container.Make(func(m Mailer) {
+  // m is instance of Gmail
   m.Send("info@miladrahimi.com", "Hello!")
+})
+```
+
+You can resolve multiple abstractions:
+
+```go
+container.Make(func(m Mailer, s Shape) {
+  // m is instance of Gmail
+  m.Send("info@miladrahimi.com", "Hello!");
+  println(s.Area())
 })
 ```
 
