@@ -60,7 +60,8 @@ You can resolve multiple abstractions:
 
 ```go
 container.Make(func(m Mailer, s Shape) {
-  // m is instance of Gmail
+  // m is an instance of Gmail
+  // s is an instance of Shape (like Rectangle)
   m.Send("info@miladrahimi.com", "Hello!");
   println(s.Area())
 })
