@@ -66,7 +66,7 @@ func Transient(resolverFunction interface{}) {
 
 // Make will resolve the dependency and return the concrete of given abstraction.
 // It takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be resolved,
-// the Container invokes the receiver function and pass the related concretes
+// the Container invokes the receiver function and pass the related concretes.
 func Make(receiverFunction interface{}) {
 	if reflect.TypeOf(receiverFunction).Kind() != reflect.Func {
 		panic("the argument (receiver) passed to Make() is not a function")
