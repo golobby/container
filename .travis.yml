@@ -1,20 +1,12 @@
-dist: xenial
-
 language: go
 
 env:
   - GO111MODULE=on
-  - GOFLAGS='-mod vendor'
 
 go:
   - 1.11.x
   - 1.12.x
   - 1.13.x
-
-git:
-  depth: 1
-
-install: true
 
 script:
   - go test -v -race ./...
