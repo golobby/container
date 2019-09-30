@@ -51,7 +51,7 @@ For example:
 
 ```go
 container.Make(func(m Mailer) {
-  // m is instance of Gmail
+  // m is an instance of Gmail
   m.Send("info@miladrahimi.com", "Hello!")
 })
 ```
