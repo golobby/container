@@ -1,6 +1,5 @@
-// Container is an IoC Container for Go projects.
+// Container provides an IoC Container for Go projects.
 // It provides simple, fluent and easy-to-use APIs to make dependency injection in GoLang very easier.
-
 package container
 
 import (
