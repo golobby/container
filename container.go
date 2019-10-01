@@ -67,6 +67,16 @@ func Transient(resolverFunction interface{}) {
 // It takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be resolved,
 // the Container invokes the receiver function and pass the related concretes.
 func Make(receiverFunction interface{}) {
+	if reflect.TypeOf(receiverFunction).Kind() == reflect.Ptr {
+		key := reflect.TypeOf(receiverFunction).Elem().String()
+		if concrete, ok := container[key]; ok {
+			reflect.ValueOf(receiverFunction).Elem().Set(reflect.ValueOf(concrete.resolve()))
+			return
+		} else {
+			panic("There is no concrete bound for " + reflect.TypeOf(receiverFunction).String())
+		}
+	}
+
 	if reflect.TypeOf(receiverFunction).Kind() != reflect.Func {
 		panic("the argument (receiver) passed to Make() is not a function")
 	}
