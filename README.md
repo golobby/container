@@ -1,6 +1,6 @@
-[![GoDoc](https://godoc.org/github.com/golobby/container?status.svg)](https://godoc.org/github.com/golobby/container)
-[![Build Status](https://travis-ci.org/golobby/container.svg?branch=master)](https://travis-ci.org/golobby/container)
-<a href='https://coveralls.io/github/golobby/container?branch=master'><img src='https://coveralls.io/repos/github/golobby/container/badge.svg?branch=master' alt='Coverage Status' /></a>
+[![GoDoc](https://godoc.org/github.com/golobby/container?status.png)](https://godoc.org/github.com/golobby/container)
+[![Build Status](https://travis-ci.org/golobby/container.png?branch=master)](https://travis-ci.org/golobby/container)
+[![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.png?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
 
 # Container
 An IoC Container for Go projects. It provides simple, fluent and easy-to-use interface to make dependency injection in 
@@ -64,7 +64,7 @@ container.Transient(func() Shape {
 After bindings, you normally need to resolve the dependencies and receive appropriate implementations of the 
 abstractions your code needs.
 
-Container resolves the dependencies with the method `make()`.
+Container resolves the dependencies with the method `make`.
 
 #### Using References
 
