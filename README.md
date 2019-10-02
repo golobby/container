@@ -60,7 +60,29 @@ container.Transient(func() Shape {
 
 ### Resolving
 
-To make a concrete by its abstraction:
+To make a concrete by its abstraction you can use `Make()` method.
+
+#### Using References
+
+To resolve the dependencies using reference:
+
+```go
+var x Abstraction
+container.Make(&x)
+// x will be Implementation of Abstraction
+```
+
+For example:
+
+```go
+var s Shape
+container.Make(&s)
+s.Area()
+```
+
+#### Using Closures
+
+To resolve the dependencies using closure:
 
 ```go
 container.Make(func(a Abstraction) {

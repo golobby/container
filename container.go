@@ -64,22 +64,29 @@ func Transient(resolver interface{}) {
 	bind(resolver, false)
 }
 
+// Reset will reset the container and remove all the bindings
+func Reset() {
+	container = map[string]binding{}
+}
+
 // Make will resolve the dependency and return a appropriate concrete of the given abstraction.
 // It takes an abstraction (interface reference) and fill it with the related implementation.
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, the Container invokes the receiver function and pass the related implementations.
 func Make(receiver interface{}) {
 	if reflect.TypeOf(receiver) == nil {
-		return
+		panic("cannot detect type of the receiver, make sure your are passing reference of the object")
 	}
 
 	if reflect.TypeOf(receiver).Kind() == reflect.Ptr {
-		key := reflect.TypeOf(receiver).Elem().String()
+		abstraction := reflect.TypeOf(receiver).Elem().String()
 
-		if concrete, ok := container[key]; ok {
+		if concrete, ok := container[abstraction]; ok {
 			instance := concrete.resolve()
 			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
 			return
+		} else {
+			panic("no concrete found for the abstraction " + abstraction)
 		}
 	}
 
@@ -95,12 +102,15 @@ func Make(receiver interface{}) {
 			if concrete, ok := container[abstraction]; ok {
 				instance = concrete.resolve()
 			} else {
-				instance = nil
+				panic("no concrete found for the abstraction " + abstraction)
 			}
 
 			arguments[i] = reflect.ValueOf(instance)
 		}
 
 		reflect.ValueOf(receiver).Call(arguments)
+		return
 	}
+
+	panic("the receiver must be either a reference or a callback")
 }
