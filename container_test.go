@@ -19,13 +19,13 @@ func (c Circle) GetArea() int {
 	return c.a
 }
 
-type Mailer interface {
-	Send() bool
+type Database interface {
+	Connect() bool
 }
 
-type GMail struct{}
+type MySQL struct{}
 
-func (g GMail) Send() bool {
+func (m MySQL) Connect() bool {
 	return true
 }
 
@@ -43,19 +43,19 @@ func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	})
 }
 
-func TestSingletonItShouldMakeSameObjectOnMake(t *testing.T) {
+func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
 	Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
 
 	area := 6
 
-	Make(func(s Shape) {
-		s.SetArea(area)
+	Make(func(s1 Shape) {
+		s1.SetArea(area)
 	})
 
-	Make(func(s Shape) {
-		if a := s.GetArea(); a != area {
+	Make(func(s2 Shape) {
+		if a := s2.GetArea(); a != area {
 			t.Errorf("Expcted %v got %v", area, a)
 		}
 	})
@@ -82,33 +82,86 @@ func TestSingletonItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 		return &Circle{a: area}
 	})
 
-	Make(func(s Shape) {
-		s.SetArea(6)
+	Make(func(s1 Shape) {
+		s1.SetArea(6)
 	})
 
-	Make(func(s Shape) {
-		if a := s.GetArea(); a != area {
+	Make(func(s2 Shape) {
+		if a := s2.GetArea(); a != area {
 			t.Errorf("Expcted %v got %v", area, a)
 		}
 	})
 }
 
-func TestMakeWithMultipleInputs(t *testing.T) {
+func TestMakeWithSingleInputAndCallback(t *testing.T) {
 	Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
 
-	Singleton(func() Mailer {
-		return &GMail{}
+	Make(func(s Shape) {
+		if _, ok := s.(*Circle); !ok {
+			t.Errorf("Expcted %v", "Circle")
+		}
+	})
+}
+
+func TestMakeWithMultipleInputsAndCallback(t *testing.T) {
+	Singleton(func() Shape {
+		return &Circle{a: 5}
 	})
 
-	Make(func(s Shape, m Mailer) {
+	Singleton(func() Database {
+		return &MySQL{}
+	})
+
+	Make(func(s Shape, m Database) {
 		if _, ok := s.(*Circle); !ok {
 			t.Errorf("Expcted %v", "Circle")
 		}
 
-		if _, ok := m.(*GMail); !ok {
-			t.Errorf("Expcted %v", "GMail")
+		if _, ok := m.(*MySQL); !ok {
+			t.Errorf("Expcted %v", "MySQL")
 		}
 	})
+}
+
+
+func TestMakeWithSingleInputAndReference(t *testing.T) {
+	Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+
+	var s Shape
+
+	Make(&s)
+
+	if _, ok := s.(*Circle); !ok {
+		t.Errorf("Expcted %v", "Circle")
+	}
+}
+
+func TestMakeWithMultipleInputsAndReference(t *testing.T) {
+	Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+
+	Singleton(func() Database {
+		return &MySQL{}
+	})
+
+	var (
+		s Shape
+		d Database
+	)
+
+	Make(&s)
+	Make(&d)
+
+	if _, ok := s.(*Circle); !ok {
+		t.Errorf("Expcted %v", "Circle")
+	}
+
+	if _, ok := d.(*MySQL); !ok {
+		t.Errorf("Expcted %v", "MySQL")
+	}
 }
