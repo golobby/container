@@ -1,6 +1,6 @@
 [![GoDoc](https://godoc.org/github.com/golobby/container?status.svg)](https://godoc.org/github.com/golobby/container)
 [![Build Status](https://travis-ci.org/golobby/container.svg?branch=master)](https://travis-ci.org/golobby/container)
-[![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.svg?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.png?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
 
 
 # Container
