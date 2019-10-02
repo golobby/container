@@ -5,7 +5,7 @@
 
 # Container
 An IoC Container for Go projects.
-It provides simple, fluent and easy-to-use APIs to make dependency injection in GoLang very easier.
+It provides simple, fluent and easy-to-use interface to make dependency injection in GoLang very easier.
 
 ## Documentation
 
