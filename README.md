@@ -116,8 +116,11 @@ container.Make(func(db Database, s Shape) {
 })
 ```
 
+## Contributors
+
+* [@miladrahimi](https://github.com/miladrahimi)
+* [@amirrezaask](https://github.com/amirrezaask)
+
 ## License
 
-GoLobby Container is initially created by 
-[@miladrahimi](https://github.com/miladrahimi) and [@amirrezaask](https://github.com/amirrezaask),
-and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
+GoLobby Container is released under the [MIT License](http://opensource.org/licenses/mit-license.php).
