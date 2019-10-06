@@ -1,5 +1,5 @@
-// Container package provides an IoC Container for Go projects.
-// It provides simple, fluent and easy-to-use interface to make dependency injection in GoLang very easier.
+// Container package provides an IoC container for Go projects.
+// It provides simple, fluent and easy-to-use interface to make dependency injection in GoLang easier.
 package container
 
 import (
@@ -7,19 +7,18 @@ import (
 )
 
 // invoke will call the given function and return its returned value.
-// If the given function returns more than on value they will be ignored.
 func invoke(function interface{}) interface{} {
 	arguments := arguments(function)
 	return reflect.ValueOf(function).Call(arguments)[0].Interface()
 }
 
-// binding is a struct that keeps a binding resolver and instance (for singleton bindings)
+// binding is a struct that keeps a binding resolver and instance (for singleton bindings).
 type binding struct {
 	resolver interface{} // resolver function
 	instance interface{} // instance stored for singleton bindings
 }
 
-// resolve will return the concrete of related abstraction
+// resolve will return the concrete of related abstraction.
 func (b binding) resolve() interface{} {
 	if b.instance != nil {
 		return b.instance
@@ -28,10 +27,10 @@ func (b binding) resolve() interface{} {
 	return invoke(b.resolver)
 }
 
-// container is the IoC container that will keep all of the bindings
+// container is the IoC container that will keep all of the bindings.
 var container = map[string]binding{}
 
-// bind will map an abstraction to a concrete and set instance if it was a singleton binding
+// bind will map an abstraction to a concrete and set instance if it was a singleton binding.
 func bind(resolver interface{}, singleton bool) {
 	if reflect.TypeOf(resolver).Kind() != reflect.Func {
 		panic("the resolver must be a function")
@@ -50,7 +49,7 @@ func bind(resolver interface{}, singleton bool) {
 	}
 }
 
-// arguments will return resolved arguments of the given function
+// arguments will return resolved arguments of the given function.
 func arguments(function interface{}) []reflect.Value {
 	argumentsCount := reflect.TypeOf(function).NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
@@ -63,7 +62,7 @@ func arguments(function interface{}) []reflect.Value {
 		if concrete, ok := container[abstraction]; ok {
 			instance = concrete.resolve()
 		} else {
-			panic("no concrete found for the abstraction " + abstraction)
+			panic("no concrete found for the abstraction: " + abstraction)
 		}
 
 		arguments[i] = reflect.ValueOf(instance)
@@ -86,15 +85,15 @@ func Transient(resolver interface{}) {
 	bind(resolver, false)
 }
 
-// Reset will reset the container and remove all the bindings
+// Reset will reset the container and remove all the bindings.
 func Reset() {
 	container = map[string]binding{}
 }
 
 // Make will resolve the dependency and return a appropriate concrete of the given abstraction.
-// It takes an abstraction (interface reference) and fill it with the related implementation.
+// It can take an abstraction (interface reference) and fill it with the related implementation.
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
-// resolved, the Container invokes the receiver function and pass the related implementations.
+// resolved, Container will invoke the receiver function and pass the related implementations.
 func Make(receiver interface{}) {
 	if reflect.TypeOf(receiver) == nil {
 		panic("cannot detect type of the receiver, make sure your are passing reference of the object")
