@@ -105,10 +105,11 @@ func Make(receiver interface{}) {
 		if concrete, ok := container[abstraction]; ok {
 			instance := concrete.resolve()
 			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
-			return
 		} else {
 			panic("no concrete found for the abstraction " + abstraction)
 		}
+
+		return
 	}
 
 	if reflect.TypeOf(receiver).Kind() == reflect.Func {
