@@ -6,15 +6,17 @@ import (
 	"reflect"
 )
 
-// invoke will call the given resolver function and return its return value
-func invoke(resolver interface{}) interface{} {
-	return reflect.ValueOf(resolver).Call([]reflect.Value{})[0].Interface()
+// invoke will call the given function and return its returned value.
+// If the given function returns more than on value they will be ignored.
+func invoke(function interface{}) interface{} {
+	arguments := arguments(function)
+	return reflect.ValueOf(function).Call(arguments)[0].Interface()
 }
 
-// binding is a struct to holds a resolver and its resolving information
+// binding is a struct that keeps a binding resolver and instance (for singleton bindings)
 type binding struct {
-	resolver interface{}
-	instance interface{}
+	resolver interface{} // resolver function
+	instance interface{} // instance stored for singleton bindings
 }
 
 // resolve will return the concrete of related abstraction
@@ -26,17 +28,13 @@ func (b binding) resolve() interface{} {
 	return invoke(b.resolver)
 }
 
-// container is the IoC container which keeps all of the bindings
+// container is the IoC container that will keep all of the bindings
 var container = map[string]binding{}
 
-// bind will bind an abstraction to a concrete, it also set instances for singleton bindings
+// bind will map an abstraction to a concrete and set instance if it was a singleton binding
 func bind(resolver interface{}, singleton bool) {
 	if reflect.TypeOf(resolver).Kind() != reflect.Func {
-		panic("the resolver passed to Singleton() or Transient() methods must be a function")
-	}
-
-	if reflect.TypeOf(resolver).NumIn() != 0 {
-		panic("the resolver function cannot take any argument")
+		panic("the resolver must be a function")
 	}
 
 	for i := 0; i < reflect.TypeOf(resolver).NumOut(); i++ {
@@ -52,14 +50,38 @@ func bind(resolver interface{}, singleton bool) {
 	}
 }
 
+// arguments will return resolved arguments of the given function
+func arguments(function interface{}) []reflect.Value {
+	argumentsCount := reflect.TypeOf(function).NumIn()
+	arguments := make([]reflect.Value, argumentsCount)
+
+	for i := 0; i < argumentsCount; i++ {
+		abstraction := reflect.TypeOf(function).In(i).String()
+
+		var instance interface{}
+
+		if concrete, ok := container[abstraction]; ok {
+			instance = concrete.resolve()
+		} else {
+			panic("no concrete found for the abstraction " + abstraction)
+		}
+
+		arguments[i] = reflect.ValueOf(instance)
+	}
+
+	return arguments
+}
+
 // Singleton will bind an abstraction to a concrete for further singleton resolutions.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have bound already in Container.
 func Singleton(resolver interface{}) {
 	bind(resolver, true)
 }
 
 // Transient will bind an abstraction to a concrete for further transient resolutions.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have bound already in Container.
 func Transient(resolver interface{}) {
 	bind(resolver, false)
 }
@@ -91,23 +113,7 @@ func Make(receiver interface{}) {
 	}
 
 	if reflect.TypeOf(receiver).Kind() == reflect.Func {
-		argumentsCount := reflect.TypeOf(receiver).NumIn()
-		arguments := make([]reflect.Value, argumentsCount)
-
-		for i := 0; i < argumentsCount; i++ {
-			abstraction := reflect.TypeOf(receiver).In(i).String()
-
-			var instance interface{}
-
-			if concrete, ok := container[abstraction]; ok {
-				instance = concrete.resolve()
-			} else {
-				panic("no concrete found for the abstraction " + abstraction)
-			}
-
-			arguments[i] = reflect.ValueOf(instance)
-		}
-
+		arguments := arguments(receiver)
 		reflect.ValueOf(receiver).Call(arguments)
 		return
 	}

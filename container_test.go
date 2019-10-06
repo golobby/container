@@ -63,33 +63,11 @@ func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
 	})
 }
 
-func TestSingletonWithResolverThatTakeArgumentsItShouldPanic(t *testing.T) {
-	value := "the resolver function cannot take any argument"
-	assert.PanicsWithValue(t, value, func() {
-		container.Singleton(func(unexpected string) Shape {
-			return &Circle{}
-		})
-	}, "Expected panic")
-}
-
 func TestSingletonWithNonFunctionResolverItShouldPanic(t *testing.T) {
-	value := "the resolver passed to Singleton() or Transient() methods must be a function"
+	value := "the resolver must be a function"
 	assert.PanicsWithValue(t, value, func() {
 		container.Singleton("STRING!")
 	}, "Expected panic")
-}
-
-func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
-	area := 5
-
-	container.Transient(func() Shape {
-		return &Circle{a: area}
-	})
-
-	container.Make(func(s Shape) {
-		a := s.GetArea()
-		assert.Equalf(t, a, area, "Expected %v got %v", area, a)
-	})
 }
 
 func TestSingletonItShouldMakeDifferentObjectsOnMake(t *testing.T) {
@@ -105,6 +83,19 @@ func TestSingletonItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 
 	container.Make(func(s2 Shape) {
 		a := s2.GetArea()
+		assert.Equalf(t, a, area, "Expected %v got %v", area, a)
+	})
+}
+
+func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
+	area := 5
+
+	container.Transient(func() Shape {
+		return &Circle{a: area}
+	})
+
+	container.Make(func(s Shape) {
+		a := s.GetArea()
 		assert.Equalf(t, a, area, "Expected %v got %v", area, a)
 	})
 }
