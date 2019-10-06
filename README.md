@@ -3,8 +3,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.png?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
 
 # Container
-An IoC Container for Go projects. It provides simple, fluent and easy-to-use interface to make dependency injection in 
-GoLang very easier.
+An IoC container for Go projects. It provides simple, fluent and easy-to-use interface to make dependency injection in 
+GoLang easier.
 
 ## Documentation
 
@@ -18,11 +18,18 @@ To install this package run the following command in the root of your project
 go get github.com/golobby/container
 ```
 
-### Binding
-Binding is a process that you introduce the container that which concrete (implementation) is appropriate for each 
-abstraction. In the binding process, you also determine how it must be resolved, singleton or transient. 
-In singleton binding, the container provides an instance once and it'd return the instance for each request. 
+### How it works?
+GoLobby Container like any other IoC container is used to bind abstractions to their implementations.
+Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for each 
+abstraction. In this process, you also determine how it must be resolved, singleton or transient. 
+In singleton binding, the container provides an instance once and returns it for each request. 
 In transient binding, the container always returns a brand new instance for each request.
+After the binding process, you can ask the IoC container to get the appropriate implementation of the abstraction your 
+code depends on. In this case, your code depends on abstractions, not implementations.
+
+### Binding
+
+#### Singleton
 
 Singleton binding using Container:
 
@@ -32,16 +39,8 @@ container.Singleton(func() Abstraction {
 })
 ```
 
-It takes a resolver function that its return type is the abstraction and the function body configures the related 
+It takes a resolver function which its return type is the abstraction and the function body configures the related 
 concrete (implementation) and returns it.
-
-Transient binding is also similar to singleton binding, see the snippet below.
-
-```go
-container.Transient(func() Abstraction {
-  return Implementation
-})
-```
 
 Example for a singleton binding:
 
@@ -51,7 +50,17 @@ container.Singleton(func() Database {
 })
 ```
 
-And an example for transient binding:
+#### Transient
+
+Transient binding is also similar to singleton binding, see the snippet below.
+
+```go
+container.Transient(func() Abstraction {
+  return Implementation
+})
+```
+
+Example for a transient binding:
 
 ```go
 container.Transient(func() Shape {
@@ -61,20 +70,17 @@ container.Transient(func() Shape {
 
 ### Resolving
 
-After bindings, you normally need to resolve the dependencies and receive appropriate implementations of the 
-abstractions your code needs.
-
 Container resolves the dependencies with the method `make()`.
 
 #### Using References
 
-One way to get the appropriate implementation of the abstraction you need is to declare an instance of the type of 
-abstraction and pass its reference to Container this way:
+One way to get the appropriate implementation you need is to declare an instance of the abstraction type and pass its 
+reference to Container this way:
 
 ```go
-var x Abstraction
-container.Make(&x)
-// x will be the implementation of Abstraction
+var a Abstraction
+container.Make(&a)
+// a will be the implementation of Abstraction
 ```
 
 Example:
@@ -87,8 +93,8 @@ m.Send("info@miladrahimi.com", "Hello Milad!")
 
 #### Using Closures
 
-Another way to resolve the dependencies is by passing a function (receiver) that its arguments are the abstractions you 
-need their implementations. Container will invoke the function and pass the related implementation for each abstraction.
+Another way to resolve the dependencies is by using a function (receiver) that its arguments are the abstractions you 
+need. Container will invoke the function and pass the related implementations for each abstraction.
 
 ```go
 container.Make(func(a Abstraction) {
@@ -100,21 +106,41 @@ Example:
 
 ```go
 container.Make(func(db Database) {
-  // db is an instance of MySQL
+  // db will be an instance of MySQL
   db.Query("...")
 })
 ```
 
-You can also resolve multiple abstractions:
+You can also resolve multiple abstractions this way:
 
 ```go
 container.Make(func(db Database, s Shape) {
-  // db is an instance of MySQL
   db.Query("...")
-  // s is an instance of Rectangle
   s.Area()
 })
 ```
+
+#### Binding time
+
+You can also resolve a dependency at the binding time in your resolver function like the following example.
+
+```go
+// Bind Config to JsonConfig
+container.Singleton(func() Config {
+    return &JsonConfig{...}
+})
+
+// Bind Database to MySQL
+container.Singleton(func(c Config) Database {
+    // c will be an instance of JsonConfig
+    return &MySQL{
+        Username: c.Get("DB_USERNAME"),
+        Password: c.Get("DB_PASSWORD"),
+    }
+})
+```
+
+Notice: You can only resolve the dependencies in a binding resolver function that has already bound.
 
 ## Contributors
 

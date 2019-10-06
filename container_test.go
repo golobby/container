@@ -70,7 +70,19 @@ func TestSingletonWithNonFunctionResolverItShouldPanic(t *testing.T) {
 	}, "Expected panic")
 }
 
-func TestSingletonItShouldMakeDifferentObjectsOnMake(t *testing.T) {
+func TestSingletonItShouldResolveResolverArguments(t *testing.T) {
+	area := 5
+	container.Singleton(func() Shape {
+		return &Circle{a: area}
+	})
+
+	container.Singleton(func(s Shape) Database {
+		assert.Equalf(t, s.GetArea(), area, "Expected %v got %v", area, s.GetArea())
+		return &MySQL{}
+	})
+}
+
+func TestTransientItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 	area := 5
 
 	container.Transient(func() Shape {
@@ -197,7 +209,7 @@ func TestMakeWithUnboundedAbstraction(t *testing.T) {
 }
 
 func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
-	value := "no concrete found for the abstraction container_test.Database"
+	value := "no concrete found for the abstraction: container_test.Database"
 	assert.PanicsWithValue(t, value, func() {
 		container.Reset()
 		container.Singleton(func() Shape {
