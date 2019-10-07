@@ -20,7 +20,7 @@ To install this package run the following command in the root of your project
 go get github.com/golobby/container
 ```
 
-### How it works?
+### Introduction
 GoLobby Container like any other IoC container is used to bind abstractions to their implementations.
 Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for each 
 abstraction. In this process, you also determine how it must be resolved, singleton or transient. 
