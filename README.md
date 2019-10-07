@@ -144,6 +144,15 @@ container.Singleton(func(c Config) Database {
 
 Notice: You can only resolve the dependencies in a binding resolver function that has already bound.
 
+### Usage Tips
+
+#### Performance
+The package Container inevitably uses reflection in binding and resolving processes. 
+If performance is a concern, you should use this package more carefully. 
+Try to bind and resolve the dependencies out of the processes that are going to run many times 
+(for example, on each request), put it where that run only once when you run your applications 
+like main and init functions.
+
 ## Contributors
 
 * [@miladrahimi](https://github.com/miladrahimi)
