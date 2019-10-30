@@ -7,9 +7,9 @@ import (
 )
 
 // invoke will call the given function and return its returned value.
-func invoke(function interface{}) interface{} {
-	arguments := arguments(function)
-	return reflect.ValueOf(function).Call(arguments)[0].Interface()
+// It only works for functions that return a single value.
+func invoke(f interface{}) interface{} {
+	return reflect.ValueOf(f).Call(arguments(f))[0].Interface()
 }
 
 // binding is a struct that keeps a binding resolver and instance (for singleton bindings).
