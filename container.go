@@ -8,11 +8,11 @@ import (
 
 // invoke will call the given function and return its returned value.
 // It only works for functions that return a single value.
-func invoke(f interface{}) interface{} {
-	return reflect.ValueOf(f).Call(arguments(f))[0].Interface()
+func invoke(function interface{}) interface{} {
+	return reflect.ValueOf(function).Call(arguments(function))[0].Interface()
 }
 
-// binding is a struct that keeps a binding resolver and instance (for singleton bindings).
+// binding keeps a binding resolver and instance (for singleton bindings).
 type binding struct {
 	resolver interface{} // resolver function
 	instance interface{} // instance stored for singleton bindings
@@ -30,7 +30,7 @@ func (b binding) resolve() interface{} {
 // container is the IoC container that will keep all of the bindings.
 var container = map[string]binding{}
 
-// bind will map an abstraction to a concrete and set instance if it was a singleton binding.
+// bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func bind(resolver interface{}, singleton bool) {
 	if reflect.TypeOf(resolver).Kind() != reflect.Func {
 		panic("the resolver must be a function")
