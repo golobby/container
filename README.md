@@ -157,6 +157,7 @@ like main and init functions.
 
 * [@miladrahimi](https://github.com/miladrahimi)
 * [@amirrezaask](https://github.com/amirrezaask)
+* [@sedhossein](https://github.com/sedhossein)
 
 ## License
 
