@@ -71,14 +71,14 @@ func arguments(function interface{}) []reflect.Value {
 	return arguments
 }
 
-// Singleton will bind an abstraction to a concrete for further singleton resolutions.
+// Singleton will bind an abstraction to a concrete for further singleton resolves.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have bound already in Container.
 func Singleton(resolver interface{}) {
 	bind(resolver, true)
 }
 
-// Transient will bind an abstraction to a concrete for further transient resolutions.
+// Transient will bind an abstraction to a concrete for further transient resolves.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have bound already in Container.
 func Transient(resolver interface{}) {
