@@ -91,7 +91,7 @@ need. Container will invoke the function and pass the related implementations fo
 
 ```go
 container.Make(func(a Abstraction) {
-  // a will be the implementation of Abstraction
+  // "a" will be implementation of the Abstraction
 })
 ```
 
@@ -99,7 +99,7 @@ Example:
 
 ```go
 container.Make(func(db Database) {
-  // db will be an instance of MySQL
+  // "db" will be the instance of MySQL
   db.Query("...")
 })
 ```
@@ -125,7 +125,7 @@ container.Singleton(func() Config {
 
 // Bind Database to MySQL
 container.Singleton(func(c Config) Database {
-    // c will be the instance of JsonConfig
+    // "c" will be the instance of JsonConfig
     return &MySQL{
         Username: c.Get("DB_USERNAME"),
         Password: c.Get("DB_PASSWORD"),
