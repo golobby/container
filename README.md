@@ -10,7 +10,7 @@ GoLang easier.
 
 ## Documentation
 
-### Supported Versions
+### Required Go Versions
 It requires Go `v1.11` or newer versions.
 
 ### Installation
