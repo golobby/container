@@ -5,8 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.svg?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
 
 # Container
-An IoC container for Go projects. It provides simple, fluent and easy-to-use interface to make dependency injection in 
-GoLang easier.
+A lightweight yet powerful IoC container for Go projects. It provides a simple, fluent and easy-to-use interface to make dependency injection in GoLang easier.
 
 ## Documentation
 
@@ -39,8 +38,7 @@ container.Singleton(func() Abstraction {
 })
 ```
 
-It takes a resolver function which its return type is the abstraction and the function body configures the related 
-concrete (implementation) and returns it.
+It takes a resolver function which its return type is the abstraction and the function body configures the related concrete (implementation) and returns it.
 
 Example for a singleton binding:
 
