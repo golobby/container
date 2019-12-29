@@ -28,7 +28,7 @@ func (b binding) resolve() interface{} {
 }
 
 // container is the IoC container that will keep all of the bindings.
-var container = map[string]binding{}
+var container = map[reflect.Type]binding{}
 
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func bind(resolver interface{}, singleton bool) {
@@ -42,7 +42,7 @@ func bind(resolver interface{}, singleton bool) {
 			instance = invoke(resolver)
 		}
 
-		container[reflect.TypeOf(resolver).Out(i).String()] = binding{
+		container[reflect.TypeOf(resolver).Out(i)] = binding{
 			resolver: resolver,
 			instance: instance,
 		}
@@ -55,14 +55,14 @@ func arguments(function interface{}) []reflect.Value {
 	arguments := make([]reflect.Value, argumentsCount)
 
 	for i := 0; i < argumentsCount; i++ {
-		abstraction := reflect.TypeOf(function).In(i).String()
+		abstraction := reflect.TypeOf(function).In(i)
 
 		var instance interface{}
 
 		if concrete, ok := container[abstraction]; ok {
 			instance = concrete.resolve()
 		} else {
-			panic("no concrete found for the abstraction: " + abstraction)
+			panic("no concrete found for the abstraction: " + abstraction.String())
 		}
 
 		arguments[i] = reflect.ValueOf(instance)
@@ -87,7 +87,7 @@ func Transient(resolver interface{}) {
 
 // Reset will reset the container and remove all the bindings.
 func Reset() {
-	container = map[string]binding{}
+	container = map[reflect.Type]binding{}
 }
 
 // Make will resolve the dependency and return a appropriate concrete of the given abstraction.
@@ -100,7 +100,7 @@ func Make(receiver interface{}) {
 	}
 
 	if reflect.TypeOf(receiver).Kind() == reflect.Ptr {
-		abstraction := reflect.TypeOf(receiver).Elem().String()
+		abstraction := reflect.TypeOf(receiver).Elem()
 
 		if concrete, ok := container[abstraction]; ok {
 			instance := concrete.resolve()
@@ -108,7 +108,7 @@ func Make(receiver interface{}) {
 			return
 		}
 
-		panic("no concrete found for the abstraction " + abstraction)
+		panic("no concrete found for the abstraction " + abstraction.String())
 	}
 
 	if reflect.TypeOf(receiver).Kind() == reflect.Func {
