@@ -14,7 +14,7 @@ GoLang easier.
 It requires Go `v1.11` or newer versions.
 
 ### Installation
-To install this package run the following command in the root of your project
+To install this package, run the following command in the root of your project.
 
 ```bash
 go get github.com/golobby/container
@@ -22,12 +22,10 @@ go get github.com/golobby/container
 
 ### Introduction
 GoLobby Container like any other IoC container is used to bind abstractions to their implementations.
-Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for each 
-abstraction. In this process, you also determine how it must be resolved, singleton or transient. 
+Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for an abstraction. In this process, you also determine how it must be resolved, singleton or transient. 
 In singleton binding, the container provides an instance once and returns it for each request. 
 In transient binding, the container always returns a brand new instance for each request.
-After the binding process, you can ask the IoC container to get the appropriate implementation of the abstraction your 
-code depends on. In this case, your code depends on abstractions, not implementations.
+After the binding process, you can ask the IoC container to get the appropriate implementation of the abstraction that your code depends on. In this case, your code depends on abstractions, not implementations.
 
 ### Binding
 
@@ -54,13 +52,7 @@ container.Singleton(func() Database {
 
 #### Transient
 
-Transient binding is also similar to singleton binding, see the snippet below.
-
-```go
-container.Transient(func() Abstraction {
-  return Implementation
-})
-```
+Transient binding is also similar to singleton binding.
 
 Example for a transient binding:
 
@@ -76,13 +68,12 @@ Container resolves the dependencies with the method `make()`.
 
 #### Using References
 
-One way to get the appropriate implementation you need is to declare an instance of the abstraction type and pass its 
-reference to Container this way:
+One way to get the appropriate implementation you need is to declare an instance of the abstraction type and pass its reference to Container this way:
 
 ```go
 var a Abstraction
 container.Make(&a)
-// a will be the implementation of Abstraction
+// "a" will be implementation of the Abstraction
 ```
 
 Example:
@@ -134,7 +125,7 @@ container.Singleton(func() Config {
 
 // Bind Database to MySQL
 container.Singleton(func(c Config) Database {
-    // c will be an instance of JsonConfig
+    // c will be the instance of JsonConfig
     return &MySQL{
         Username: c.Get("DB_USERNAME"),
         Password: c.Get("DB_PASSWORD"),
