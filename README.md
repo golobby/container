@@ -153,12 +153,6 @@ Try to bind and resolve the dependencies out of the processes that are going to 
 (for example, on each request), put it where that run only once when you run your applications 
 like main and init functions.
 
-## Contributors
-
-* [@miladrahimi](https://github.com/miladrahimi)
-* [@amirrezaask](https://github.com/amirrezaask)
-* [@sedhossein](https://github.com/sedhossein)
-
 ## License
 
 GoLobby Container is released under the [MIT License](http://opensource.org/licenses/mit-license.php).
