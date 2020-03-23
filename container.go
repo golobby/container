@@ -32,17 +32,18 @@ var container = map[reflect.Type]binding{}
 
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func bind(resolver interface{}, singleton bool) {
-	if reflect.TypeOf(resolver).Kind() != reflect.Func {
+	resolverTypeOf := reflect.TypeOf(resolver)
+	if resolverTypeOf.Kind() != reflect.Func {
 		panic("the resolver must be a function")
 	}
 
-	for i := 0; i < reflect.TypeOf(resolver).NumOut(); i++ {
+	for i := 0; i < resolverTypeOf.NumOut(); i++ {
 		var instance interface{}
 		if singleton {
 			instance = invoke(resolver)
 		}
 
-		container[reflect.TypeOf(resolver).Out(i)] = binding{
+		container[resolverTypeOf.Out(i)] = binding{
 			resolver: resolver,
 			instance: instance,
 		}
@@ -51,11 +52,12 @@ func bind(resolver interface{}, singleton bool) {
 
 // arguments will return resolved arguments of the given function.
 func arguments(function interface{}) []reflect.Value {
-	argumentsCount := reflect.TypeOf(function).NumIn()
+	functionTypeOf := reflect.TypeOf(function)
+	argumentsCount := functionTypeOf.NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
 
 	for i := 0; i < argumentsCount; i++ {
-		abstraction := reflect.TypeOf(function).In(i)
+		abstraction := functionTypeOf.In(i)
 
 		var instance interface{}
 
@@ -95,12 +97,13 @@ func Reset() {
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, Container will invoke the receiver function and pass the related implementations.
 func Make(receiver interface{}) {
-	if reflect.TypeOf(receiver) == nil {
+	receiverTypeOf := reflect.TypeOf(receiver)
+	if receiverTypeOf == nil {
 		panic("cannot detect type of the receiver, make sure your are passing reference of the object")
 	}
 
-	if reflect.TypeOf(receiver).Kind() == reflect.Ptr {
-		abstraction := reflect.TypeOf(receiver).Elem()
+	if receiverTypeOf.Kind() == reflect.Ptr {
+		abstraction := receiverTypeOf.Elem()
 
 		if concrete, ok := container[abstraction]; ok {
 			instance := concrete.resolve()
@@ -111,7 +114,7 @@ func Make(receiver interface{}) {
 		panic("no concrete found for the abstraction " + abstraction.String())
 	}
 
-	if reflect.TypeOf(receiver).Kind() == reflect.Func {
+	if receiverTypeOf.Kind() == reflect.Func {
 		arguments := arguments(receiver)
 		reflect.ValueOf(receiver).Call(arguments)
 		return
