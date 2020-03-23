@@ -1,11 +1,9 @@
 package container_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/golobby/container"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type Shape interface {
@@ -44,7 +42,7 @@ func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 
 	container.Make(func(s Shape) {
 		a := s.GetArea()
-		assert.Equalf(t, area, a, "Expected %v got %v", area, a)
+		assert.Equal(t, area, a)
 	})
 }
 
@@ -61,7 +59,7 @@ func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
 
 	container.Make(func(s2 Shape) {
 		a := s2.GetArea()
-		assert.Equalf(t, a, area, "Expected %v got %v", a, area)
+		assert.Equal(t, a, area)
 	})
 }
 
@@ -79,7 +77,7 @@ func TestSingletonItShouldResolveResolverArguments(t *testing.T) {
 	})
 
 	container.Singleton(func(s Shape) Database {
-		assert.Equalf(t, s.GetArea(), area, "Expected %v got %v", s.GetArea(), area)
+		assert.Equal(t, s.GetArea(), area)
 		return &MySQL{}
 	})
 }
@@ -97,7 +95,7 @@ func TestTransientItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 
 	container.Make(func(s2 Shape) {
 		a := s2.GetArea()
-		assert.Equalf(t, a, area, "Expected %v got %v", a, area)
+		assert.Equal(t, a, area)
 	})
 }
 
@@ -110,7 +108,7 @@ func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 
 	container.Make(func(s Shape) {
 		a := s.GetArea()
-		assert.Equalf(t, a, area, "Expected %v got %v", a, area)
+		assert.Equal(t, a, area)
 	})
 }
 
@@ -178,11 +176,11 @@ func TestMakeWithMultipleInputsAndReference(t *testing.T) {
 	container.Make(&d)
 
 	if _, ok := s.(*Circle); !ok {
-		t.Errorf("Expected Circle")
+		t.Error("Expected Circle")
 	}
 
 	if _, ok := d.(*MySQL); !ok {
-		t.Errorf("Expected MySQL")
+		t.Error("Expected MySQL")
 	}
 }
 
