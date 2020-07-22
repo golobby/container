@@ -8,15 +8,14 @@ import (
 
 // invoke will call the given function and return its returned value.
 // It only works for functions that return a single value.
-func invoke(function interface{}, functionType reflect.Type) interface{} {
-	return reflect.ValueOf(function).Call(arguments(function, functionType))[0].Interface()
+func invoke(function interface{}) interface{} {
+	return reflect.ValueOf(function).Call(arguments(function))[0].Interface()
 }
 
 // binding keeps a binding resolver and instance (for singleton bindings).
 type binding struct {
-	resolver     interface{} // resolver function
-	instance     interface{} // instance stored for singleton bindings
-	resolverType reflect.Type
+	resolver interface{} // resolver function
+	instance interface{} // instance stored for singleton bindings
 }
 
 // resolve will return the concrete of related abstraction.
@@ -24,7 +23,7 @@ func (b binding) resolve() interface{} {
 	if b.instance != nil {
 		return b.instance
 	}
-	return invoke(b.resolver, nil)
+	return invoke(b.resolver)
 }
 
 // container is the IoC container that will keep all of the bindings.
@@ -41,67 +40,63 @@ func bind(resolver interface{}, singleton bool) {
 	for i := 0; i < resolverTypeOf.NumOut(); i++ {
 		var instance interface{}
 		if singleton {
-			instance = invoke(resolver, resolverTypeOf)
+			instance = invoke(resolver)
 		}
 
 		if resolverTypeOf.Out(i).Kind() == reflect.Ptr {
 			containerPointer[resolverTypeOf.Out(i)] = binding{
-				resolver:     resolver,
-				instance:     instance,
-				resolverType: resolverTypeOf.Out(i),
+				resolver: resolver,
+				instance: instance,
 			}
 		} else {
 			container[resolverTypeOf.Out(i)] = binding{
-				resolver:     resolver,
-				instance:     instance,
-				resolverType: resolverTypeOf.Out(i),
+				resolver: resolver,
+				instance: instance,
 			}
 		}
 	}
 }
 
 // arguments will return resolved arguments of the given function.
-func arguments(function interface{}, functionTypeOf reflect.Type) []reflect.Value {
-	if functionTypeOf == nil {
-		functionTypeOf = reflect.TypeOf(function)
-	}
+func arguments(function interface{}) []reflect.Value {
+	functionTypeOf := reflect.TypeOf(function)
 	argumentsCount := functionTypeOf.NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
 
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := functionTypeOf.In(i)
-
-		var instance reflect.Value
-
-		if abstraction.Kind() == reflect.Ptr {
-			if concrete, ok := containerPointer[abstraction]; ok {
-				instance = reflect.ValueOf(concrete.resolve())
-			} else {
-				if concrete, ok := container[abstraction.Elem()]; ok {
-					//https://github.com/a8m/reflect-examples#wrap-a-reflectvalue-with-pointer-t--t
-					data := concrete.resolve()
-					pt := reflect.PtrTo(reflect.TypeOf(data)) // create a *T type.
-					pv := reflect.New(pt.Elem())  // create a reflect.Value of type *T.
-					pv.Elem().Set(reflect.ValueOf(data))              // sets pv to point to underlying value of v.
-					instance = pv
-				} else {
-					panic("no concrete found for the abstraction: " + abstraction.String())
-				}
-			}
-		} else {
-			if concrete, ok := container[abstraction]; ok {
-				instance = reflect.ValueOf(concrete.resolve())
-			} else {
-				if concrete, ok := containerPointer[reflect.PtrTo(abstraction)]; ok {
-					instance = reflect.ValueOf(concrete.resolve()).Elem()
-				} else {
-					panic("no concrete found for the abstraction: " + abstraction.String())
-				}
-			}
-		}
-		arguments[i] = instance
+		arguments[i] = getValue(abstraction)
 	}
 	return arguments
+}
+
+func getValue(abstraction reflect.Type) reflect.Value {
+	if abstraction.Kind() == reflect.Ptr {
+		if concrete, ok := containerPointer[abstraction]; ok {
+			return reflect.ValueOf(concrete.resolve())
+		} else {
+			if concrete, ok := container[abstraction.Elem()]; ok {
+				//https://github.com/a8m/reflect-examples#wrap-a-reflectvalue-with-pointer-t--t
+				data := concrete.resolve()
+				pt := reflect.PtrTo(reflect.TypeOf(data))
+				pv := reflect.New(pt.Elem())
+				pv.Elem().Set(reflect.ValueOf(data))
+				return pv
+			} else {
+				panic("no concrete found for the abstraction " + abstraction.String())
+			}
+		}
+	} else {
+		if concrete, ok := container[abstraction]; ok {
+			return reflect.ValueOf(concrete.resolve())
+		} else {
+			if concrete, ok := containerPointer[reflect.PtrTo(abstraction)]; ok {
+				return reflect.ValueOf(concrete.resolve()).Elem()
+			} else {
+				panic("no concrete found for the abstraction " + abstraction.String())
+			}
+		}
+	}
 }
 
 // Singleton will bind an abstraction to a concrete for further singleton resolves.
@@ -136,45 +131,17 @@ func Make(receiver interface{}) {
 
 	if receiverTypeOf.Kind() == reflect.Ptr {
 		abstraction := receiverTypeOf.Elem()
-
-		if abstraction.Kind() == reflect.Ptr {
-			if concrete, ok := containerPointer[abstraction]; ok {
-				instance := concrete.resolve()
-				reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
-				return
-			} else {
-				if concrete, ok := container[abstraction.Elem()]; ok {
-					instance := concrete.resolve()
-					field := reflect.New(reflect.TypeOf(instance))
-					field.Elem().Set(reflect.ValueOf(instance))
-					reflect.ValueOf(receiver).Elem().Set(field)
-					return
-				} else {
-					panic("no concrete found for the abstraction " + abstraction.String())
-				}
-			}
-		} else {
-			if concrete, ok := container[abstraction]; ok {
-				instance := concrete.resolve()
-				reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
-				return
-			} else {
-				if concrete, ok := containerPointer[reflect.PtrTo(abstraction)]; ok {
-					instance := concrete.resolve()
-					reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance).Elem())
-					return
-				} else {
-					panic("no concrete found for the abstraction " + abstraction.String())
-				}
-			}
-		}
+		reflect.ValueOf(receiver).Elem().Set(getValue(abstraction))
+		return
 	}
 
 	if receiverTypeOf.Kind() == reflect.Func {
-		arguments := arguments(receiver, receiverTypeOf)
+		arguments := arguments(receiver)
 		reflect.ValueOf(receiver).Call(arguments)
 		return
 	}
 
 	panic("the receiver must be either a reference or a callback")
 }
+
+

@@ -371,7 +371,7 @@ func TestMakeWithUnboundedAbstraction(t *testing.T) {
 }
 
 func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
-	value := "no concrete found for the abstraction: container_test.Database"
+	value := "no concrete found for the abstraction container_test.Database"
 	assert.PanicsWithValue(t, value, func() {
 		container.Reset()
 		container.Singleton(func() Shape {
