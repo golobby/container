@@ -33,6 +33,166 @@ func (m MySQL) Connect() bool {
 	return true
 }
 
+type Combined struct {
+	Cir *Circle
+	Db *MySQL
+}
+
+type Combined2 struct {
+	Cir Circle
+	Db *MySQL
+}
+
+func TestCombinedObject1(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() *Circle {
+		return &Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir *Circle, db *MySQL) *Combined{
+		return &Combined{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined *Combined
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
+func TestCombinedObject2(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() *Circle {
+		return &Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir *Circle, db *MySQL) *Combined{
+		return &Combined{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined Combined
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
+func TestCombinedObject3(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() *Circle {
+		return &Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir Circle, db *MySQL) *Combined2{
+		return &Combined2{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined Combined2
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
+func TestCombinedObject4(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() Circle {
+		return Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir *Circle, db *MySQL) *Combined{
+		return &Combined{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined Combined
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
+func TestCombinedObject5(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() *Circle {
+		return &Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir Circle, db *MySQL) Combined2{
+		return Combined2{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined *Combined2
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
+func TestCombinedObject6(t *testing.T) {
+	container.Reset()
+
+	container.Singleton(func() Circle {
+		return Circle{a:5}
+	})
+
+	container.Singleton(func() *MySQL {
+		return &MySQL{}
+	})
+
+	container.Singleton(func(cir *Circle, db *MySQL) Combined{
+		return Combined{
+			Cir: cir,
+			Db:  db,
+		}
+	})
+
+	var combined *Combined
+	container.Make(&combined)
+	assert.NotNil(t, combined)
+	assert.NotNil(t, combined.Cir)
+	assert.Equal(t, combined.Cir.a, 5)
+}
+
 func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	area := 5
 
@@ -187,6 +347,7 @@ func TestMakeWithMultipleInputsAndReference(t *testing.T) {
 func TestMakeWithUnsupportedReceiver(t *testing.T) {
 	value := "the receiver must be either a reference or a callback"
 	assert.PanicsWithValue(t, value, func() {
+		container.Reset()
 		container.Make("STRING!")
 	}, "Expected panic")
 }
@@ -195,6 +356,7 @@ func TestMakeWithNonReference(t *testing.T) {
 	value := "cannot detect type of the receiver, make sure your are passing reference of the object"
 	assert.PanicsWithValue(t, value, func() {
 		var s Shape
+		container.Reset()
 		container.Make(s)
 	}, "Expected panic")
 }
