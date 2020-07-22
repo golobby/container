@@ -9,7 +9,7 @@ import (
 // invoke will call the given function and return its returned value.
 // It only works for functions that return a single value.
 func invoke(function interface{}, functionType reflect.Type) interface{} {
-	return reflect.ValueOf(function).Call(arguments(functionType))[0].Interface()
+	return reflect.ValueOf(function).Call(arguments(function, functionType))[0].Interface()
 }
 
 // binding keeps a binding resolver and instance (for singleton bindings).
@@ -24,7 +24,7 @@ func (b binding) resolve() interface{} {
 	if b.instance != nil {
 		return b.instance
 	}
-	return invoke(b.resolver, b.resolverType)
+	return invoke(b.resolver, nil)
 }
 
 // container is the IoC container that will keep all of the bindings.
@@ -61,7 +61,10 @@ func bind(resolver interface{}, singleton bool) {
 }
 
 // arguments will return resolved arguments of the given function.
-func arguments(functionTypeOf reflect.Type) []reflect.Value {
+func arguments(function interface{}, functionTypeOf reflect.Type) []reflect.Value {
+	if functionTypeOf == nil {
+		functionTypeOf = reflect.TypeOf(function)
+	}
 	argumentsCount := functionTypeOf.NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
 
@@ -118,6 +121,7 @@ func Transient(resolver interface{}) {
 // Reset will reset the container and remove all the bindings.
 func Reset() {
 	container = map[reflect.Type]binding{}
+	containerPointer = map[reflect.Type]binding{}
 }
 
 // Make will resolve the dependency and return a appropriate concrete of the given abstraction.
@@ -127,7 +131,7 @@ func Reset() {
 func Make(receiver interface{}) {
 	receiverTypeOf := reflect.TypeOf(receiver)
 	if receiverTypeOf == nil {
-		panic("cannot detect type of the receiver, make sure your are passing reference of the object :")
+		panic("cannot detect type of the receiver, make sure your are passing reference of the object")
 	}
 
 	if receiverTypeOf.Kind() == reflect.Ptr {
@@ -146,7 +150,7 @@ func Make(receiver interface{}) {
 					reflect.ValueOf(receiver).Elem().Set(field)
 					return
 				} else {
-					panic("no concrete found for the abstraction: " + abstraction.String())
+					panic("no concrete found for the abstraction " + abstraction.String())
 				}
 			}
 		} else {
@@ -160,14 +164,14 @@ func Make(receiver interface{}) {
 					reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance).Elem())
 					return
 				} else {
-					panic("no concrete found for the abstraction: " + abstraction.String())
+					panic("no concrete found for the abstraction " + abstraction.String())
 				}
 			}
 		}
 	}
 
 	if receiverTypeOf.Kind() == reflect.Func {
-		arguments := arguments(receiverTypeOf)
+		arguments := arguments(receiver, receiverTypeOf)
 		reflect.ValueOf(receiver).Call(arguments)
 		return
 	}
