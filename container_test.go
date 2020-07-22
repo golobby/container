@@ -369,6 +369,14 @@ func TestMakeWithUnboundedAbstraction(t *testing.T) {
 		container.Make(&s)
 	}, "Expected panic")
 }
+func TestMakeWithUnboundedAbstractionPtr(t *testing.T) {
+	value := "no concrete found for the abstraction *container_test.Shape"
+	assert.PanicsWithValue(t, value, func() {
+		var s *Shape
+		container.Reset()
+		container.Make(&s)
+	}, "Expected panic")
+}
 
 func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
 	value := "no concrete found for the abstraction container_test.Database"
