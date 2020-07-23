@@ -14,21 +14,25 @@ func invoke(function interface{}) interface{} {
 
 // binding keeps a binding resolver and instance (for singleton bindings).
 type binding struct {
-	resolver interface{} // resolver function
-	instance interface{} // instance stored for singleton bindings
+	resolver  interface{} // resolver function
+	instance  interface{} // instance stored for singleton bindings
+	singleton bool
 }
 
 // resolve will return the concrete of related abstraction.
-func (b binding) resolve() interface{} {
-	if b.instance != nil {
+func (b *binding) resolve() interface{} {
+	if b.singleton {
+		if b.instance == nil {
+			b.instance = invoke(b.resolver)
+		}
 		return b.instance
 	}
 	return invoke(b.resolver)
 }
 
 // container is the IoC container that will keep all of the bindings.
-var container = map[reflect.Type]binding{}
-var containerPointer = map[reflect.Type]binding{}
+var container = map[reflect.Type]*binding{}
+var containerPointer = map[reflect.Type]*binding{}
 
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func bind(resolver interface{}, singleton bool) {
@@ -38,20 +42,15 @@ func bind(resolver interface{}, singleton bool) {
 	}
 
 	for i := 0; i < resolverTypeOf.NumOut(); i++ {
-		var instance interface{}
-		if singleton {
-			instance = invoke(resolver)
-		}
-
 		if resolverTypeOf.Out(i).Kind() == reflect.Ptr {
-			containerPointer[resolverTypeOf.Out(i)] = binding{
-				resolver: resolver,
-				instance: instance,
+			containerPointer[resolverTypeOf.Out(i)] = &binding{
+				resolver:  resolver,
+				singleton: singleton,
 			}
 		} else {
-			container[resolverTypeOf.Out(i)] = binding{
-				resolver: resolver,
-				instance: instance,
+			container[resolverTypeOf.Out(i)] = &binding{
+				resolver:  resolver,
+				singleton: singleton,
 			}
 		}
 	}
@@ -115,8 +114,8 @@ func Transient(resolver interface{}) {
 
 // Reset will reset the container and remove all the bindings.
 func Reset() {
-	container = map[reflect.Type]binding{}
-	containerPointer = map[reflect.Type]binding{}
+	container = map[reflect.Type]*binding{}
+	containerPointer = map[reflect.Type]*binding{}
 }
 
 // Make will resolve the dependency and return a appropriate concrete of the given abstraction.
@@ -143,5 +142,3 @@ func Make(receiver interface{}) {
 
 	panic("the receiver must be either a reference or a callback")
 }
-
-
