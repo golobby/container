@@ -135,6 +135,16 @@ Notice: You can only resolve the dependencies in a binding resolver function tha
 
 ### Usage Tips
 
+#### Binding Declaration
+Singletons are lazily created. We can use package's init function to declare all binding with the container.
+```go
+func init() {
+    container.Singleton(func() Abstraction {
+        return Implementation
+    })
+}
+```
+
 #### Performance
 The package Container inevitably uses reflection in binding and resolving processes. 
 If performance is a concern, you should use this package more carefully. 
