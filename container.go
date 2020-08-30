@@ -65,11 +65,11 @@ func bind(resolver interface{}, singleton bool) error {
 func arguments(function interface{}) ([]reflect.Value, error) {
 	argumentsCount := reflect.TypeOf(function).NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
-
+	abstractionTypeOf := reflect.TypeOf(function)
 	for i := 0; i < argumentsCount; i++ {
 		var instance interface{}
 		var err error
-		abstraction := reflect.TypeOf(function).In(i)
+		abstraction := abstractionTypeOf.In(i)
 		if concrete, ok := container[abstraction]; ok {
 			instance, err = concrete.resolve()
 			if err != nil {
