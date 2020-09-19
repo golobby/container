@@ -6,12 +6,6 @@ import (
 	"reflect"
 )
 
-// invoke will call the given function and return its returned value.
-// It only works for functions that return a single value.
-func (c Container) invoke(function interface{}) interface{} {
-	return reflect.ValueOf(function).Call(c.arguments(function))[0].Interface()
-}
-
 // binding keeps a binding resolver and instance (for singleton bindings).
 type binding struct {
 	resolver interface{} // resolver function
@@ -48,6 +42,12 @@ func (c Container) bind(resolver interface{}, singleton bool) {
 			instance: instance,
 		}
 	}
+}
+
+// invoke will call the given function and return its returned value.
+// It only works for functions that return a single value.
+func (c Container) invoke(function interface{}) interface{} {
+	return reflect.ValueOf(function).Call(c.arguments(function))[0].Interface()
 }
 
 // arguments will return resolved arguments of the given function.
