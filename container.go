@@ -6,6 +6,10 @@ import (
 	internal "github.com/golobby/container/pkg/container"
 )
 
+func NewContainer() internal.Container {
+	return make(internal.Container)
+}
+
 // A default instance for container
 var container internal.Container = internal.NewContainer()
 
