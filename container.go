@@ -24,6 +24,10 @@ func (b binding) resolve(c Container) interface{} {
 // Container is a map of reflect.Type to binding
 type Container map[reflect.Type]binding
 
+func NewContainer() Container {
+	return make(Container)
+}
+
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func (c Container) bind(resolver interface{}, singleton bool) {
 	resolverTypeOf := reflect.TypeOf(resolver)
