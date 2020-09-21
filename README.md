@@ -133,6 +133,18 @@ container.Singleton(func(c Config) Database {
 
 Notice: You can only resolve the dependencies in a binding resolver function that has already bound.
 
+### Standalone instance
+
+Container works without any initialization keeping your bindings in the default instance. Sometimes you may want to create a standalone instance for a part of application. If so, create a new instance:
+
+```go
+c := container.NewContainer() // returns container.Container
+c.Singleton(binding)
+c.Make(&resolver)
+```
+
+The rest stays the same. The default container is still available.
+
 ### Usage Tips
 
 #### Performance
