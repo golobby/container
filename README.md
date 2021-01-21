@@ -33,9 +33,12 @@ After the binding process, you can ask the IoC container to get the appropriate 
 Singleton binding using Container:
 
 ```go
-container.Singleton(func() Abstraction {
+err := container.Singleton(func() Abstraction {
   return Implementation
 })
+if err != nil {
+    fmt.Println(err)
+}
 ```
 
 It takes a resolver function which its return type is the abstraction and the function body configures the related concrete (implementation) and returns it.
@@ -43,9 +46,12 @@ It takes a resolver function which its return type is the abstraction and the fu
 Example for a singleton binding:
 
 ```go
-container.Singleton(func() Database {
+err := container.Singleton(func() Database {
   return &MySQL{}
 })
+if err != nil {
+    fmt.Println(err)
+}
 ```
 
 #### Transient
@@ -55,9 +61,12 @@ Transient binding is also similar to singleton binding.
 Example for a transient binding:
 
 ```go
-container.Transient(func() Shape {
+err := container.Transient(func() Shape {
   return &Rectangle{}
 })
+if err != nil {
+    fmt.Println(err)
+}
 ```
 
 ### Resolving
@@ -70,7 +79,7 @@ One way to get the appropriate implementation you need is to declare an instance
 
 ```go
 var a Abstraction
-container.Make(&a)
+_ = container.Make(&a)
 // "a" will be implementation of the Abstraction
 ```
 
@@ -78,7 +87,7 @@ Example:
 
 ```go
 var m Mailer
-container.Make(&m)
+_ = container.Make(&m)
 m.Send("info@miladrahimi.com", "Hello Milad!")
 ```
 
@@ -88,7 +97,7 @@ Another way to resolve the dependencies is by using a function (receiver) that i
 need. Container will invoke the function and pass the related implementations for each abstraction.
 
 ```go
-container.Make(func(a Abstraction) {
+_ = container.Make(func(a Abstraction) {
   // "a" will be implementation of the Abstraction
 })
 ```
@@ -96,7 +105,7 @@ container.Make(func(a Abstraction) {
 Example:
 
 ```go
-container.Make(func(db Database) {
+_ = container.Make(func(db Database) {
   // "db" will be the instance of MySQL
   db.Query("...")
 })
@@ -105,7 +114,7 @@ container.Make(func(db Database) {
 You can also resolve multiple abstractions this way:
 
 ```go
-container.Make(func(db Database, s Shape) {
+_ = container.Make(func(db Database, s Shape) {
   db.Query("...")
   s.Area()
 })
@@ -117,18 +126,24 @@ You can also resolve a dependency at the binding time in your resolver function 
 
 ```go
 // Bind Config to JsonConfig
-container.Singleton(func() Config {
+err := container.Singleton(func() Config {
     return &JsonConfig{...}
 })
+if err != nil {
+    fmt.Println(err)
+}
 
 // Bind Database to MySQL
-container.Singleton(func(c Config) Database {
+err = container.Singleton(func(c Config) Database {
     // "c" will be the instance of JsonConfig
     return &MySQL{
         Username: c.Get("DB_USERNAME"),
         Password: c.Get("DB_PASSWORD"),
     }
 })
+if err != nil {
+    fmt.Println(err)
+}
 ```
 
 Notice: You can only resolve the dependencies in a binding resolver function that has already bound.
@@ -139,8 +154,8 @@ Container works without any initialization keeping your bindings in the default 
 
 ```go
 c := container.NewContainer() // returns container.Container
-c.Singleton(binding)
-c.Make(&resolver)
+_ = c.Singleton(binding)
+_ = c.Make(&resolver)
 ```
 
 The rest stays the same. The default container is still available.
