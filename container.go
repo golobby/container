@@ -11,16 +11,16 @@ func NewContainer() internal.Container {
 }
 
 // A default instance for container
-var container internal.Container = internal.NewContainer()
+var container = internal.NewContainer()
 
 // Singleton creates a singleton for the default instance.
-func Singleton(resolver interface{}) {
-	container.Singleton(resolver)
+func Singleton(resolver interface{}) error {
+	return container.Singleton(resolver)
 }
 
 // Transient creates a transient binding for the default instance.
-func Transient(resolver interface{}) {
-	container.Transient(resolver)
+func Transient(resolver interface{}) error {
+	return container.Transient(resolver)
 }
 
 // Reset removes all bindings in the default instance.
@@ -29,6 +29,6 @@ func Reset() {
 }
 
 // Make binds receiver to the default instance.
-func Make(receiver interface{}) {
-	container.Make(receiver)
+func Make(receiver interface{}) error {
+	return container.Make(receiver)
 }
