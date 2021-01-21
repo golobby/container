@@ -36,9 +36,6 @@ Singleton binding using Container:
 err := container.Singleton(func() Abstraction {
   return Implementation
 })
-if err != nil {
-    fmt.Println(err)
-}
 ```
 
 It takes a resolver function which its return type is the abstraction and the function body configures the related concrete (implementation) and returns it.
@@ -49,9 +46,6 @@ Example for a singleton binding:
 err := container.Singleton(func() Database {
   return &MySQL{}
 })
-if err != nil {
-    fmt.Println(err)
-}
 ```
 
 #### Transient
@@ -64,9 +58,6 @@ Example for a transient binding:
 err := container.Transient(func() Shape {
   return &Rectangle{}
 })
-if err != nil {
-    fmt.Println(err)
-}
 ```
 
 ### Resolving
@@ -79,7 +70,7 @@ One way to get the appropriate implementation you need is to declare an instance
 
 ```go
 var a Abstraction
-_ = container.Make(&a)
+err := container.Make(&a)
 // "a" will be implementation of the Abstraction
 ```
 
@@ -87,7 +78,11 @@ Example:
 
 ```go
 var m Mailer
-_ = container.Make(&m)
+err := container.Make(&m)
+if err != nil {
+    panic(err)
+}
+
 m.Send("info@miladrahimi.com", "Hello Milad!")
 ```
 
@@ -97,7 +92,7 @@ Another way to resolve the dependencies is by using a function (receiver) that i
 need. Container will invoke the function and pass the related implementations for each abstraction.
 
 ```go
-_ = container.Make(func(a Abstraction) {
+err := container.Make(func(a Abstraction) {
   // "a" will be implementation of the Abstraction
 })
 ```
@@ -105,7 +100,7 @@ _ = container.Make(func(a Abstraction) {
 Example:
 
 ```go
-_ = container.Make(func(db Database) {
+err := container.Make(func(db Database) {
   // "db" will be the instance of MySQL
   db.Query("...")
 })
@@ -114,7 +109,7 @@ _ = container.Make(func(db Database) {
 You can also resolve multiple abstractions this way:
 
 ```go
-_ = container.Make(func(db Database, s Shape) {
+err := container.Make(func(db Database, s Shape) {
   db.Query("...")
   s.Area()
 })
@@ -129,21 +124,15 @@ You can also resolve a dependency at the binding time in your resolver function 
 err := container.Singleton(func() Config {
     return &JsonConfig{...}
 })
-if err != nil {
-    fmt.Println(err)
-}
 
 // Bind Database to MySQL
-err = container.Singleton(func(c Config) Database {
+err := container.Singleton(func(c Config) Database {
     // "c" will be the instance of JsonConfig
     return &MySQL{
         Username: c.Get("DB_USERNAME"),
         Password: c.Get("DB_PASSWORD"),
     }
 })
-if err != nil {
-    fmt.Println(err)
-}
 ```
 
 Notice: You can only resolve the dependencies in a binding resolver function that has already bound.
