@@ -1,9 +1,11 @@
 package container_test
 
 import (
-	"github.com/golobby/container/pkg/container"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/golobby/container/pkg/container"
 )
 
 type Shape interface {
@@ -38,104 +40,119 @@ var instance = container.NewContainer()
 func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	area := 5
 
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: area}
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s Shape) {
+	err = instance.Make(func(s Shape) {
 		a := s.GetArea()
 		assert.Equal(t, area, a)
 	})
+	assert.NoError(t, err)
 }
 
 func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
+	assert.NoError(t, err)
 
 	area := 6
 
-	instance.Make(func(s1 Shape) {
+	err = instance.Make(func(s1 Shape) {
 		s1.SetArea(area)
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s2 Shape) {
+	err = instance.Make(func(s2 Shape) {
 		a := s2.GetArea()
 		assert.Equal(t, a, area)
 	})
+	assert.NoError(t, err)
 }
 
 func TestSingletonWithNonFunctionResolverItShouldPanic(t *testing.T) {
-	value := "the resolver must be a function"
-	assert.PanicsWithValue(t, value, func() {
-		instance.Singleton("STRING!")
-	}, "Expected panic")
+	expectedErr := "the resolver must be a function"
+	err := instance.Singleton("STRING!")
+	assert.EqualError(t, err, expectedErr)
 }
 
 func TestSingletonItShouldResolveResolverArguments(t *testing.T) {
 	area := 5
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: area}
 	})
+	assert.NoError(t, err)
 
-	instance.Singleton(func(s Shape) Database {
+	err = instance.Singleton(func(s Shape) Database {
 		assert.Equal(t, s.GetArea(), area)
 		return &MySQL{}
 	})
+	assert.NoError(t, err)
 }
 
 func TestTransientItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 	area := 5
 
-	instance.Transient(func() Shape {
+	err := instance.Transient(func() Shape {
 		return &Circle{a: area}
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s1 Shape) {
+	err = instance.Make(func(s1 Shape) {
 		s1.SetArea(6)
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s2 Shape) {
+	err = instance.Make(func(s2 Shape) {
 		a := s2.GetArea()
 		assert.Equal(t, a, area)
 	})
+	assert.NoError(t, err)
 }
 
 func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	area := 5
 
-	instance.Transient(func() Shape {
+	err := instance.Transient(func() Shape {
 		return &Circle{a: area}
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s Shape) {
+	err = instance.Make(func(s Shape) {
 		a := s.GetArea()
 		assert.Equal(t, a, area)
 	})
+	assert.NoError(t, err)
 }
 
 func TestMakeWithSingleInputAndCallback(t *testing.T) {
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s Shape) {
+	err = instance.Make(func(s Shape) {
 		if _, ok := s.(*Circle); !ok {
 			t.Error("Expected Circle")
 		}
 	})
+	assert.NoError(t, err)
 }
 
 func TestMakeWithMultipleInputsAndCallback(t *testing.T) {
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
+	assert.NoError(t, err)
 
-	instance.Singleton(func() Database {
+	err = instance.Singleton(func() Database {
 		return &MySQL{}
 	})
+	assert.NoError(t, err)
 
-	instance.Make(func(s Shape, m Database) {
+	err = instance.Make(func(s Shape, m Database) {
 		if _, ok := s.(*Circle); !ok {
 			t.Error("Expected Circle")
 		}
@@ -144,16 +161,19 @@ func TestMakeWithMultipleInputsAndCallback(t *testing.T) {
 			t.Error("Expected MySQL")
 		}
 	})
+	assert.NoError(t, err)
 }
 
 func TestMakeWithSingleInputAndReference(t *testing.T) {
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
+	assert.NoError(t, err)
 
 	var s Shape
 
-	instance.Make(&s)
+	err = instance.Make(&s)
+	assert.NoError(t, err)
 
 	if _, ok := s.(*Circle); !ok {
 		t.Error("Expected Circle")
@@ -161,62 +181,66 @@ func TestMakeWithSingleInputAndReference(t *testing.T) {
 }
 
 func TestMakeWithMultipleInputsAndReference(t *testing.T) {
-	instance.Singleton(func() Shape {
+	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
+	assert.NoError(t, err)
 
-	instance.Singleton(func() Database {
+	err = instance.Singleton(func() Database {
 		return &MySQL{}
 	})
+	assert.NoError(t, err)
 
 	var (
 		s Shape
 		d Database
 	)
 
-	instance.Make(&s)
-	instance.Make(&d)
-
+	err = instance.Make(&s)
+	assert.NoError(t, err)
 	if _, ok := s.(*Circle); !ok {
 		t.Error("Expected Circle")
 	}
 
+	err = instance.Make(&d)
+	assert.NoError(t, err)
 	if _, ok := d.(*MySQL); !ok {
 		t.Error("Expected MySQL")
 	}
 }
 
 func TestMakeWithUnsupportedReceiver(t *testing.T) {
-	value := "the receiver must be either a reference or a callback"
-	assert.PanicsWithValue(t, value, func() {
-		instance.Make("STRING!")
-	}, "Expected panic")
+	expectedErr := "the receiver must be either a reference or a callback"
+	err := instance.Make("STRING!")
+	assert.EqualError(t, err, expectedErr)
 }
 
 func TestMakeWithNonReference(t *testing.T) {
-	value := "cannot detect type of the receiver, make sure your are passing reference of the object"
-	assert.PanicsWithValue(t, value, func() {
-		var s Shape
-		instance.Make(s)
-	}, "Expected panic")
+	expectedErr := "cannot detect type of the receiver, make sure your are passing reference of the object"
+	var s Shape
+
+	err := instance.Make(s)
+	assert.EqualError(t, err, expectedErr)
 }
 
 func TestMakeWithUnboundedAbstraction(t *testing.T) {
-	value := "no concrete found for the abstraction container_test.Shape"
-	assert.PanicsWithValue(t, value, func() {
-		var s Shape
-		instance.Reset()
-		instance.Make(&s)
-	}, "Expected panic")
+	expectedErr := "no concrete found for the abstraction container_test.Shape"
+	var s Shape
+	instance.Reset()
+
+	err := instance.Make(&s)
+	assert.EqualError(t, err, expectedErr)
 }
 
 func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
-	value := "no concrete found for the abstraction: container_test.Database"
-	assert.PanicsWithValue(t, value, func() {
-		instance.Reset()
-		instance.Singleton(func() Shape {
-			return &Circle{}
-		})
-		instance.Make(func(s Shape, d Database) {})
-	}, "Expected panic")
+	expectedErr := "no concrete found for the abstraction: container_test.Database"
+	instance.Reset()
+
+	err := instance.Singleton(func() Shape {
+		return &Circle{}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Make(func(s Shape, d Database) {})
+	assert.EqualError(t, err, expectedErr)
 }
