@@ -111,6 +111,34 @@ container.Make(func(db Database, s Shape) {
 })
 ```
 
+### Named bindings
+
+You can also use named bindings to create many bindings of the same type:
+
+```go
+container.SingletonNamed("concreteFactoryA", func() Factory {
+	return &ConcreteFactoryA{}
+})
+container.SingletonNamed("concreteFactoryB", func() Factory {
+    return &ConcreteFactoryB{}
+})
+```
+
+Then you may easily retrieve concrete factory based on a string saved ex. in DB:
+
+```go
+var factory Factory
+container.MakeNamed(factoryName, &factory)
+```
+
+You can also easily iterate over all named bindings of particular interface:
+
+```go
+container.ForEachNamed(func(factory Factory)) {
+    
+}
+```
+
 #### Binding time
 
 You can also resolve a dependency at the binding time in your resolver function like the following example.

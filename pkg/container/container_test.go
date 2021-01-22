@@ -33,11 +33,35 @@ func (m MySQL) Connect() bool {
 	return true
 }
 
-var instance = container.NewContainer()
+type Concrete interface {
+	String() string
+}
+
+type ConcreteA struct {
+}
+
+func (c ConcreteA) String() string {
+	return "A"
+}
+
+type ConcreteB struct {
+}
+
+func (c ConcreteB) String() string {
+	return "B"
+}
+
+type ConcreteC struct {
+}
+
+func (c ConcreteC) String() string {
+	return "C"
+}
 
 func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	area := 5
 
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: area}
 	})
@@ -49,6 +73,7 @@ func TestSingletonItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 }
 
 func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -65,7 +90,46 @@ func TestSingletonItShouldMakeSameObjectEachMake(t *testing.T) {
 	})
 }
 
+func TestSingletonNamedInstanceIsDifferentThanDefaultOne(t *testing.T) {
+	instance := container.NewContainer()
+	instance.Singleton(func() Concrete {
+		return &ConcreteA{}
+	})
+	instance.SingletonNamed("named", func() Concrete {
+		return &ConcreteB{}
+	})
+
+	var concreteA Concrete
+	var concreteB Concrete
+
+	instance.Make(&concreteA)
+	instance.MakeNamed("named", &concreteB)
+
+	assert.Equal(t, "A", concreteA.String())
+	assert.Equal(t, "B", concreteB.String())
+}
+
+func TestSingletonTwoNamedInstancesAreDifferent(t *testing.T) {
+	instance := container.NewContainer()
+	instance.SingletonNamed("A", func() Concrete {
+		return &ConcreteA{}
+	})
+	instance.SingletonNamed("B", func() Concrete {
+		return &ConcreteB{}
+	})
+
+	var concreteA Concrete
+	var concreteB Concrete
+
+	instance.MakeNamed("A", &concreteA)
+	instance.MakeNamed("B", &concreteB)
+
+	assert.Equal(t, "A", concreteA.String())
+	assert.Equal(t, "B", concreteB.String())
+}
+
 func TestSingletonWithNonFunctionResolverItShouldPanic(t *testing.T) {
+	instance := container.NewContainer()
 	value := "the resolver must be a function"
 	assert.PanicsWithValue(t, value, func() {
 		instance.Singleton("STRING!")
@@ -74,6 +138,7 @@ func TestSingletonWithNonFunctionResolverItShouldPanic(t *testing.T) {
 
 func TestSingletonItShouldResolveResolverArguments(t *testing.T) {
 	area := 5
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: area}
 	})
@@ -86,7 +151,7 @@ func TestSingletonItShouldResolveResolverArguments(t *testing.T) {
 
 func TestTransientItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 	area := 5
-
+	instance := container.NewContainer()
 	instance.Transient(func() Shape {
 		return &Circle{a: area}
 	})
@@ -101,9 +166,47 @@ func TestTransientItShouldMakeDifferentObjectsOnMake(t *testing.T) {
 	})
 }
 
+func TestTransientNamedInstanceIsDifferentThanDefaultOne(t *testing.T) {
+	instance := container.NewContainer()
+	instance.Transient(func() Concrete {
+		return &ConcreteA{}
+	})
+	instance.TransientNamed("named", func() Concrete {
+		return &ConcreteB{}
+	})
+
+	var concreteA Concrete
+	var concreteB Concrete
+
+	instance.Make(&concreteA)
+	instance.MakeNamed("named", &concreteB)
+
+	assert.Equal(t, "A", concreteA.String())
+	assert.Equal(t, "B", concreteB.String())
+}
+
+func TestTransientTwoNamedInstancesAreDifferent(t *testing.T) {
+	instance := container.NewContainer()
+	instance.TransientNamed("A", func() Concrete {
+		return &ConcreteA{}
+	})
+	instance.TransientNamed("B", func() Concrete {
+		return &ConcreteB{}
+	})
+
+	var concreteA Concrete
+	var concreteB Concrete
+
+	instance.MakeNamed("A", &concreteA)
+	instance.MakeNamed("B", &concreteB)
+
+	assert.Equal(t, "A", concreteA.String())
+	assert.Equal(t, "B", concreteB.String())
+}
+
 func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 	area := 5
-
+	instance := container.NewContainer()
 	instance.Transient(func() Shape {
 		return &Circle{a: area}
 	})
@@ -115,6 +218,7 @@ func TestTransientItShouldMakeAnInstanceOfTheAbstraction(t *testing.T) {
 }
 
 func TestMakeWithSingleInputAndCallback(t *testing.T) {
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -127,6 +231,7 @@ func TestMakeWithSingleInputAndCallback(t *testing.T) {
 }
 
 func TestMakeWithMultipleInputsAndCallback(t *testing.T) {
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -147,6 +252,7 @@ func TestMakeWithMultipleInputsAndCallback(t *testing.T) {
 }
 
 func TestMakeWithSingleInputAndReference(t *testing.T) {
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -161,6 +267,7 @@ func TestMakeWithSingleInputAndReference(t *testing.T) {
 }
 
 func TestMakeWithMultipleInputsAndReference(t *testing.T) {
+	instance := container.NewContainer()
 	instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -187,6 +294,7 @@ func TestMakeWithMultipleInputsAndReference(t *testing.T) {
 }
 
 func TestMakeWithUnsupportedReceiver(t *testing.T) {
+	instance := container.NewContainer()
 	value := "the receiver must be either a reference or a callback"
 	assert.PanicsWithValue(t, value, func() {
 		instance.Make("STRING!")
@@ -194,6 +302,7 @@ func TestMakeWithUnsupportedReceiver(t *testing.T) {
 }
 
 func TestMakeWithNonReference(t *testing.T) {
+	instance := container.NewContainer()
 	value := "cannot detect type of the receiver, make sure your are passing reference of the object"
 	assert.PanicsWithValue(t, value, func() {
 		var s Shape
@@ -202,6 +311,7 @@ func TestMakeWithNonReference(t *testing.T) {
 }
 
 func TestMakeWithUnboundedAbstraction(t *testing.T) {
+	instance := container.NewContainer()
 	value := "no concrete found for the abstraction container_test.Shape"
 	assert.PanicsWithValue(t, value, func() {
 		var s Shape
@@ -211,6 +321,7 @@ func TestMakeWithUnboundedAbstraction(t *testing.T) {
 }
 
 func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
+	instance := container.NewContainer()
 	value := "no concrete found for the abstraction: container_test.Database"
 	assert.PanicsWithValue(t, value, func() {
 		instance.Reset()
@@ -219,4 +330,29 @@ func TestMakeWithCallbackThatHasAUnboundedAbstraction(t *testing.T) {
 		})
 		instance.Make(func(s Shape, d Database) {})
 	}, "Expected panic")
+}
+
+func TestForEachNamedReturnsNamedConcretesOnly(t *testing.T) {
+	instance := container.NewContainer()
+	instance.Singleton(func() Concrete {
+		return &ConcreteA{}
+	})
+	instance.SingletonNamed("B", func() Concrete {
+		return &ConcreteB{}
+	})
+	instance.TransientNamed("C", func() Concrete {
+		return &ConcreteC{}
+	})
+	instance.SingletonNamed("B", func() Shape {
+		return &Circle{}
+	})
+
+	vals := map[string]bool{}
+	instance.ForEachNamed(func(c Concrete) {
+		assert.False(t, vals[c.String()])
+		vals[c.String()] = true
+	})
+	assert.Len(t, vals, 2)
+	assert.True(t, vals["B"])
+	assert.True(t, vals["C"])
 }
