@@ -145,6 +145,36 @@ c.Make(&resolver)
 
 The rest stays the same. The default container is still available.
 
+#### Sub containers
+
+You may create sub container:
+
+```go
+c := container.NewContainer()
+c.Singleton(func() Binding1 { ... })
+subC := c.SubContainer()
+subC.Singleton(func() Binding2 { ... })
+```
+
+In above case these work:
+
+```go
+var binding1 Binding1
+var binding2 Binding2
+c.Make(&binding1)
+subC.Make(&binding1)
+subC.Make(&binding2)
+```
+
+This doesn't work:
+
+```go
+var binding2 Binding2
+c.Make(&binding2)
+```
+
+because Binding2 is registered only in sub container.
+
 ### Usage Tips
 
 #### Performance

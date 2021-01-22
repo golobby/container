@@ -7,11 +7,11 @@ import (
 )
 
 func NewContainer() internal.Container {
-	return make(internal.Container)
+	return internal.NewContainer()
 }
 
 // A default instance for container
-var container internal.Container = internal.NewContainer()
+var container = NewContainer()
 
 // Singleton creates a singleton for the default instance.
 func Singleton(resolver interface{}) {

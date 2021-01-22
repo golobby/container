@@ -22,11 +22,14 @@ func (b binding) resolve(c Container) interface{} {
 }
 
 // Container is a map of reflect.Type to binding
-type Container map[reflect.Type]binding
+type Container struct {
+	parent   *Container
+	bindings map[reflect.Type]binding
+}
 
 // NewContainer returns a new instance of Container
 func NewContainer() Container {
-	return make(Container)
+	return Container{bindings: map[reflect.Type]binding{}}
 }
 
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
@@ -42,7 +45,7 @@ func (c Container) bind(resolver interface{}, singleton bool) {
 			instance = c.invoke(resolver)
 		}
 
-		c[resolverTypeOf.Out(i)] = binding{
+		c.bindings[resolverTypeOf.Out(i)] = binding{
 			resolver: resolver,
 			instance: instance,
 		}
@@ -63,19 +66,20 @@ func (c Container) arguments(function interface{}) []reflect.Value {
 
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := functionTypeOf.In(i)
-
-		var instance interface{}
-
-		if concrete, ok := c[abstraction]; ok {
-			instance = concrete.resolve(c)
-		} else {
-			panic("no concrete found for the abstraction: " + abstraction.String())
-		}
-
-		arguments[i] = reflect.ValueOf(instance)
+		arguments[i] = reflect.ValueOf(c.resolve(abstraction).resolve(c))
 	}
 
 	return arguments
+}
+
+func (c Container) resolve(abstraction reflect.Type) binding {
+	if concrete, ok := c.bindings[abstraction]; ok {
+		return concrete
+	}
+	if c.parent != nil {
+		return c.parent.resolve(abstraction)
+	}
+	panic("no concrete found for the abstraction: " + abstraction.String())
 }
 
 // Singleton will bind an abstraction to a concrete for further singleton resolves.
@@ -94,8 +98,8 @@ func (c Container) Transient(resolver interface{}) {
 
 // Reset will reset the container and remove all the bindings.
 func (c Container) Reset() {
-	for k := range c {
-		delete(c, k)
+	for k := range c.bindings {
+		delete(c.bindings, k)
 	}
 }
 
@@ -112,13 +116,9 @@ func (c Container) Make(receiver interface{}) {
 	if receiverTypeOf.Kind() == reflect.Ptr {
 		abstraction := receiverTypeOf.Elem()
 
-		if concrete, ok := c[abstraction]; ok {
-			instance := concrete.resolve(c)
-			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
-			return
-		}
-
-		panic("no concrete found for the abstraction " + abstraction.String())
+		instance := c.resolve(abstraction).resolve(c)
+		reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
+		return
 	}
 
 	if receiverTypeOf.Kind() == reflect.Func {
@@ -128,4 +128,12 @@ func (c Container) Make(receiver interface{}) {
 	}
 
 	panic("the receiver must be either a reference or a callback")
+}
+
+// SubContainer creates sub container
+// Bindings are resolved in sub container first and if it's not possible request is redirected to the parent one
+func (c Container) SubContainer() Container {
+	sub := NewContainer()
+	sub.parent = &c
+	return sub
 }
