@@ -25,8 +25,8 @@ func (b binding) resolve(c Container) (interface{}, error) {
 // Container is the repository of bindings
 type Container map[reflect.Type]binding
 
-// NewContainer creates a new instance of Container
-func NewContainer() Container {
+// New creates a new instance of Container
+func New() Container {
 	return make(Container)
 }
 

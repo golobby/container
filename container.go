@@ -6,13 +6,13 @@ import (
 	internal "github.com/golobby/container/v2/pkg/container"
 )
 
-// NewContainer creates a new standalone instance of Container
+// New creates a new standalone instance of Container
 func New() internal.Container {
 	return make(internal.Container)
 }
 
 // container is the global repository of bindings
-var container = internal.NewContainer()
+var container = internal.New()
 
 // Singleton will bind an abstraction to a concrete for further singleton resolves.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).

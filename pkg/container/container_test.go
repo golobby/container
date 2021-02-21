@@ -35,7 +35,7 @@ func (m MySQL) Connect() bool {
 	return true
 }
 
-var instance = container.NewContainer()
+var instance = container.New()
 
 func TestContainer_Singleton(t *testing.T) {
 	err := instance.Singleton(func() Shape {
