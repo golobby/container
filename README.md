@@ -159,7 +159,7 @@ err := c.Make(func(db Database) {
 ```
 
 The rest stays the same.
-The default container is still available.
+The global container is still available.
 
 ### Usage Tips
 
