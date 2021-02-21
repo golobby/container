@@ -7,7 +7,7 @@ import (
 )
 
 // NewContainer creates a new standalone instance of Container
-func NewContainer() internal.Container {
+func New() internal.Container {
 	return make(internal.Container)
 }
 
