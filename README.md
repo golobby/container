@@ -5,7 +5,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/golobby/container/badge.svg?branch=master)](https://coveralls.io/github/golobby/container?branch=master)
 
 # Container
-A lightweight yet powerful IoC container for Go projects. It provides a simple, fluent and easy-to-use interface to make dependency injection in GoLang easier.
+A lightweight yet powerful IoC dependency injection container for Go projects.
+It provides an easy-to-use interface and performance-in-mind dependency injection container to be your ultimate requirement.
 
 ## Documentation
 
@@ -20,11 +21,13 @@ go get github.com/golobby/container/v2
 ```
 
 ### Introduction
-GoLobby Container like any other IoC container is used to bind abstractions to their implementations.
-Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for an abstraction. In this process, you also determine how it must be resolved, singleton or transient. 
-In singleton binding, the container provides an instance once and returns it for each request. 
+GoLobby Container like any other IoC dependency injection container is used to bind abstractions to their implementations.
+Binding is a process of introducing an IoC container that which concrete (implementation) is appropriate for an abstraction.
+In this process, you also determine how it must be resolved, singleton or transient.
+In singleton binding, the container provides an instance once and returns the same for all requests.
 In transient binding, the container always returns a brand new instance for each request.
-After the binding process, you can ask the IoC container to get the appropriate implementation of the abstraction that your code depends on. In this case, your code depends on abstractions, not implementations.
+After the binding process, you can ask the IoC container to make the appropriate implementation of the abstraction that your code depends on.
+In this case, your code depends on abstractions, not implementations.
 
 ### Binding
 
@@ -88,8 +91,8 @@ m.Send("info@miladrahimi.com", "Hello Milad!")
 
 #### Using Closures
 
-Another way to resolve the dependencies is by using a function (receiver) that its arguments are the abstractions you 
-need. Container will invoke the function and pass the related implementations for each abstraction.
+Another way to resolve the dependencies is by using a function (receiver) that its arguments are the abstractions you need.
+Container will invoke the function and pass the related implementations for each abstraction.
 
 ```go
 err := container.Make(func(a Abstraction) {
@@ -139,15 +142,24 @@ Notice: You can only resolve the dependencies in a binding resolver function tha
 
 ### Standalone instance
 
-Container works without any initialization keeping your bindings in the default instance. Sometimes you may want to create a standalone instance for a part of application. If so, create a new instance:
+Container works without any initialization keeping your bindings in the default instance.
+Sometimes you may want to create a standalone instance for a part of your application.
+If so, create a standalone instance:
 
 ```go
-c := container.NewContainer() // returns container.Container
-_ = c.Singleton(binding)
-_ = c.Make(&resolver)
+c := container.New() // returns a container.Container
+
+err := c.Singleton(func() Database {
+    return &MySQL{}
+})
+
+err := c.Make(func(db Database) {
+    db.Query("...")
+})
 ```
 
-The rest stays the same. The default container is still available.
+The rest stays the same.
+The default container is still available.
 
 ### Usage Tips
 
