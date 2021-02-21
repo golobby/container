@@ -121,32 +121,36 @@ func (c Container) Reset() {
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, Container will invoke the receiver function and pass the related implementations.
 func (c Container) Make(receiver interface{}) error {
-	receiverTypeOf := reflect.TypeOf(receiver)
-	if receiverTypeOf == nil {
+	receiverType := reflect.TypeOf(receiver)
+	if receiverType == nil {
 		return errors.New("cannot detect type of the receiver")
 	}
 
-	if receiverTypeOf.Kind() == reflect.Ptr {
-		abstraction := receiverTypeOf.Elem()
+	if receiverType.Kind() == reflect.Ptr {
+		abstraction := receiverType.Elem()
 
 		if concrete, ok := c[abstraction]; ok {
 			instance, err := concrete.resolve(c)
 			if err != nil {
 				return err
 			}
+
 			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
+
 			return nil
 		}
 
-		return errors.New("no concrete found for the abstraction " + abstraction.String())
+		return errors.New("no concrete found for the abstraction: " + abstraction.String())
 	}
 
-	if receiverTypeOf.Kind() == reflect.Func {
+	if receiverType.Kind() == reflect.Func {
 		arguments, err := c.arguments(receiver)
 		if err != nil {
 			return err
 		}
+
 		reflect.ValueOf(receiver).Call(arguments)
+
 		return nil
 	}
 

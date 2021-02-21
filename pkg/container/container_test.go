@@ -216,7 +216,7 @@ func TestMakeWithUnsupportedReceiver(t *testing.T) {
 }
 
 func TestMakeWithNonReference(t *testing.T) {
-	expectedErr := "cannot detect type of the receiver, make sure your are passing reference of the object"
+	expectedErr := "cannot detect type of the receiver"
 	var s Shape
 
 	err := instance.Make(s)
