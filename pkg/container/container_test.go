@@ -224,7 +224,7 @@ func TestMakeWithNonReference(t *testing.T) {
 }
 
 func TestMakeWithUnboundedAbstraction(t *testing.T) {
-	expectedErr := "no concrete found for the abstraction container_test.Shape"
+	expectedErr := "no concrete found for the abstraction: container_test.Shape"
 	var s Shape
 	instance.Reset()
 

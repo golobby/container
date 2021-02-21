@@ -1,34 +1,42 @@
-// Package container provides an IoC container for Go projects.
-// It provides simple, fluent and easy-to-use interface to make dependency injection in GoLang easier.
+// Package container is a lightweight yet powerful IoC container for Go projects.
+// It provides an easy-to-use interface and performance-in-mind container to be your ultimate requirement.
 package container
 
 import (
 	internal "github.com/golobby/container/pkg/container"
 )
 
+// NewContainer creates a new standalone instance of Container
 func NewContainer() internal.Container {
 	return make(internal.Container)
 }
 
-// A default instance for container
+// container is the global repository of bindings
 var container = internal.NewContainer()
 
-// Singleton creates a singleton for the default instance.
+// Singleton will bind an abstraction to a concrete for further singleton resolves.
+// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have bound already in Container.
 func Singleton(resolver interface{}) error {
 	return container.Singleton(resolver)
 }
 
-// Transient creates a transient binding for the default instance.
+// Transient will bind an abstraction to a concrete for further transient resolves.
+// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have bound already in Container.
 func Transient(resolver interface{}) error {
 	return container.Transient(resolver)
 }
 
-// Reset removes all bindings in the default instance.
+// Reset will reset the container and remove all the existing bindings.
 func Reset() {
 	container.Reset()
 }
 
-// Make binds receiver to the default instance.
+// Make will resolve the dependency and return a appropriate concrete of the given abstraction.
+// It can take an abstraction (interface reference) and fill it with the related implementation.
+// It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
+// resolved, Container will invoke the receiver function and pass the related implementations.
 func Make(receiver interface{}) error {
 	return container.Make(receiver)
 }

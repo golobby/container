@@ -1,6 +1,5 @@
-// Package container provides an IoC container for Go projects.
-// It provides simple, fluent, performance-in-mid, and easy-to-use interface
-// to make dependency injection in GoLang easier.
+// Package container is a lightweight yet powerful IoC container for Go projects.
+// It provides an easy-to-use interface and performance-in-mind container to be your ultimate requirement.
 package container
 
 import (
@@ -8,13 +7,13 @@ import (
 	"reflect"
 )
 
-// binding keeps a binding resolver and instance (for singleton bindings).
+// binding keeps a binding resolver and an instance (for singleton bindings).
 type binding struct {
-	resolver interface{} // resolver function
-	instance interface{} // instance stored for singleton bindings
+	resolver interface{} // resolver function that creates the appropriate implementation of the related abstraction
+	instance interface{} // instance stored for reusing in singleton bindings
 }
 
-// resolve will return the concrete of related abstraction.
+// resolve will create the appropriate implementation of the related abstraction
 func (b binding) resolve(c Container) (interface{}, error) {
 	if b.instance != nil {
 		return b.instance, nil
@@ -23,34 +22,31 @@ func (b binding) resolve(c Container) (interface{}, error) {
 	return c.invoke(b.resolver)
 }
 
-// Container is a map of reflect.Type to binding
+// Container is the repository of bindings
 type Container map[reflect.Type]binding
 
-// NewContainer returns a new instance of Container
+// NewContainer creates a new instance of Container
 func NewContainer() Container {
 	return make(Container)
 }
 
 // bind will map an abstraction to a concrete and set instance if it's a singleton binding.
 func (c Container) bind(resolver interface{}, singleton bool) error {
-	var err error
-	resolverTypeOf := reflect.TypeOf(resolver)
-	if resolverTypeOf.Kind() != reflect.Func {
+	reflectedResolver := reflect.TypeOf(resolver)
+	if reflectedResolver.Kind() != reflect.Func {
 		return errors.New("the resolver must be a function")
 	}
 
-	for i := 0; i < resolverTypeOf.NumOut(); i++ {
-		var instance interface{}
+	for i := 0; i < reflectedResolver.NumOut(); i++ {
 		if singleton {
-			instance, err = c.invoke(resolver)
+			instance, err := c.invoke(resolver)
 			if err != nil {
 				return err
 			}
-		}
 
-		c[resolverTypeOf.Out(i)] = binding{
-			resolver: resolver,
-			instance: instance,
+			c[reflectedResolver.Out(i)] = binding{resolver: resolver, instance: instance}
+		} else {
+			c[reflectedResolver.Out(i)] = binding{resolver: resolver}
 		}
 	}
 
@@ -70,26 +66,23 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 
 // arguments will return resolved arguments of the given function.
 func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
-	var err error
-	functionTypeOf := reflect.TypeOf(function)
-	argumentsCount := functionTypeOf.NumIn()
+	reflectedFunction := reflect.TypeOf(function)
+	argumentsCount := reflectedFunction.NumIn()
 	arguments := make([]reflect.Value, argumentsCount)
 
 	for i := 0; i < argumentsCount; i++ {
-		abstraction := functionTypeOf.In(i)
-
-		var instance interface{}
+		abstraction := reflectedFunction.In(i)
 
 		if concrete, ok := c[abstraction]; ok {
-			instance, err = concrete.resolve(c)
+			instance, err := concrete.resolve(c)
 			if err != nil {
 				return nil, err
 			}
+
+			arguments[i] = reflect.ValueOf(instance)
 		} else {
 			return nil, errors.New("no concrete found for the abstraction: " + abstraction.String())
 		}
-
-		arguments[i] = reflect.ValueOf(instance)
 	}
 
 	return arguments, nil
@@ -109,7 +102,7 @@ func (c Container) Transient(resolver interface{}) error {
 	return c.bind(resolver, false)
 }
 
-// Reset will reset the container and remove all the bindings.
+// Reset will reset the container and remove all the existing bindings.
 func (c Container) Reset() {
 	for k := range c {
 		delete(c, k)
