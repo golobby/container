@@ -123,7 +123,7 @@ func (c Container) Reset() {
 func (c Container) Make(receiver interface{}) error {
 	receiverTypeOf := reflect.TypeOf(receiver)
 	if receiverTypeOf == nil {
-		return errors.New("cannot detect type of the receiver, make sure your are passing reference of the object")
+		return errors.New("cannot detect type of the receiver")
 	}
 
 	if receiverTypeOf.Kind() == reflect.Ptr {
