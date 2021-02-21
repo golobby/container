@@ -43,6 +43,9 @@ func TestContainer_Singleton(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	err = instance.Singleton(func() {})
+	assert.NoError(t, err)
+
 	err = instance.Make(func(s1 Shape) {
 		s1.SetArea(666)
 	})
