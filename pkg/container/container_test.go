@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/golobby/container/pkg/container"
+	"github.com/golobby/container/v2/pkg/container"
 )
 
 type Shape interface {

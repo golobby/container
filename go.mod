@@ -1,4 +1,4 @@
-module github.com/golobby/container
+module github.com/golobby/container/v2
 
 go 1.11
 

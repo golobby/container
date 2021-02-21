@@ -3,7 +3,7 @@
 package container
 
 import (
-	internal "github.com/golobby/container/pkg/container"
+	internal "github.com/golobby/container/v2/pkg/container"
 )
 
 // NewContainer creates a new standalone instance of Container
