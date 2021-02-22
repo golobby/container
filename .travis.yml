@@ -21,5 +21,6 @@ notifications:
   email:
     recipients:
       - info@miladrahimi.com
+      - raskarpour@gmail.com
     on_success: change
     on_failure: always
