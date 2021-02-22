@@ -8,11 +8,11 @@ import (
 
 // New creates a new standalone instance of Container
 func New() internal.Container {
-	return make(internal.Container)
+	return internal.New()
 }
 
 // container is the global repository of bindings
-var container = internal.New()
+var container = New()
 
 // Singleton will bind an abstraction to a concrete for further singleton resolves.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
