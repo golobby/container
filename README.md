@@ -29,6 +29,19 @@ In transient binding, the container always returns a brand new instance for each
 After the binding process, you can ask the IoC container to make the appropriate implementation of the abstraction that your code depends on.
 In this case, your code depends on abstractions, not implementations.
 
+### Quick Start
+
+```go
+// Bind Config (interface) to JsonConfig
+err := container.Singleton(func() Config {
+    return &JsonConfig{...}
+})
+
+var c Config
+err := container.Make(&c)
+// `c` will be an instance of JsonConfig
+```
+
 ### Binding
 
 #### Singleton
