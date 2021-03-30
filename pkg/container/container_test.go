@@ -201,6 +201,17 @@ func TestContainer_Fill(t *testing.T) {
 	assert.IsType(t, &MySQL{}, myApp.D)
 }
 
+func TestContainer_Fill_With_Invalid_Field(t *testing.T) {
+	type App struct {
+		S string `container:"inject"`
+	}
+
+	myApp := App{}
+
+	err := instance.Fill(&myApp)
+	assert.EqualError(t, err, "cannot resolve S field")
+}
+
 func TestContainer_Fill_With_Invalid_Struct(t *testing.T) {
 	invalidStruct := 0
 	err := instance.Fill(&invalidStruct)

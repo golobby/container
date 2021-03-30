@@ -4,6 +4,7 @@ package container
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -113,6 +114,7 @@ func (c Container) Reset() {
 // It can take an abstraction (interface reference) and fill it with the related implementation.
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, Container will invoke the receiver function and pass the related implementations.
+// Deprecated: Make is deprecated.
 func (c Container) Make(receiver interface{}) error {
 	receiverType := reflect.TypeOf(receiver)
 	if receiverType == nil {
@@ -128,6 +130,8 @@ func (c Container) Make(receiver interface{}) error {
 	return errors.New("the receiver must be either a reference or a callback")
 }
 
+// Call takes a function with one or more arguments of the abstractions (interfaces) that need to be
+// resolved, Container will invoke the receiver function and pass the related implementations.
 func (c Container) Call(function interface{}) error {
 	receiverType := reflect.TypeOf(function)
 	if receiverType == nil {
@@ -148,6 +152,7 @@ func (c Container) Call(function interface{}) error {
 	return errors.New("invalid function")
 }
 
+// Bind takes an abstraction (interface reference) and fill it with the related implementation.
 func (c Container) Bind(abstraction interface{}) error {
 	receiverType := reflect.TypeOf(abstraction)
 	if receiverType == nil {
@@ -174,6 +179,7 @@ func (c Container) Bind(abstraction interface{}) error {
 	return errors.New("invalid abstraction")
 }
 
+// Fill takes a struct and fills the fields with the tag `container:"inject"`
 func (c Container) Fill(structure interface{}) error {
 	receiverType := reflect.TypeOf(structure)
 	if receiverType == nil {
@@ -197,7 +203,11 @@ func (c Container) Fill(structure interface{}) error {
 						}
 
 						f.Set(reflect.ValueOf(instance))
+
+						continue
 					}
+
+					return errors.New(fmt.Sprintf("cannot resolve %v field", s.Type().Field(i).Name))
 				}
 			}
 
