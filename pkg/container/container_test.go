@@ -176,3 +176,33 @@ func TestContainer_Make_With_Second_UnBounded_Argument(t *testing.T) {
 	err = instance.Make(func(s Shape, d Database) {})
 	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Database")
 }
+
+func TestContainer_Fill(t *testing.T) {
+	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Singleton(func() Database {
+		return &MySQL{}
+	})
+	assert.NoError(t, err)
+
+	myApp := struct {
+		S Shape    `container:"inject"`
+		D Database `container:"inject"`
+		X string
+	}{}
+
+	err = instance.Fill(&myApp)
+	assert.NoError(t, err)
+
+	assert.IsType(t, &Circle{}, myApp.S)
+	assert.IsType(t, &MySQL{}, myApp.D)
+}
+
+func TestContainer_Fill_With_Invalid_Struct(t *testing.T) {
+	invalidStruct := 0
+	err := instance.Fill(&invalidStruct)
+	assert.EqualError(t, err, "invalid structure")
+}

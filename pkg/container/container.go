@@ -120,32 +120,90 @@ func (c Container) Make(receiver interface{}) error {
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
-		abstraction := receiverType.Elem()
+		return c.Bind(receiver)
+	} else if receiverType.Kind() == reflect.Func {
+		return c.Call(receiver)
+	}
 
-		if concrete, ok := c[abstraction]; ok {
+	return errors.New("the receiver must be either a reference or a callback")
+}
+
+func (c Container) Call(function interface{}) error {
+	receiverType := reflect.TypeOf(function)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the function")
+	}
+
+	if receiverType.Kind() == reflect.Func {
+		arguments, err := c.arguments(function)
+		if err != nil {
+			return err
+		}
+
+		reflect.ValueOf(function).Call(arguments)
+
+		return nil
+	}
+
+	return errors.New("invalid function")
+}
+
+func (c Container) Bind(abstraction interface{}) error {
+	receiverType := reflect.TypeOf(abstraction)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the abstraction")
+	}
+
+	if receiverType.Kind() == reflect.Ptr {
+		elem := receiverType.Elem()
+
+		if concrete, ok := c[elem]; ok {
 			instance, err := concrete.resolve(c)
 			if err != nil {
 				return err
 			}
 
-			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
+			reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
 
 			return nil
 		}
 
-		return errors.New("no concrete found for the abstraction: " + abstraction.String())
+		return errors.New("no concrete found for the abstraction: " + elem.String())
 	}
 
-	if receiverType.Kind() == reflect.Func {
-		arguments, err := c.arguments(receiver)
-		if err != nil {
-			return err
+	return errors.New("invalid abstraction")
+}
+
+func (c Container) Fill(structure interface{}) error {
+	receiverType := reflect.TypeOf(structure)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the structure")
+	}
+
+	if receiverType.Kind() == reflect.Ptr {
+		elem := receiverType.Elem()
+
+		if elem.Kind() == reflect.Struct {
+			s := reflect.ValueOf(structure).Elem()
+
+			for i := 0; i < s.NumField(); i++ {
+				f := s.Field(i)
+
+				if s.Type().Field(i).Tag == "container:\"inject\"" {
+					if concrete, ok := c[f.Type()]; ok {
+						instance, err := concrete.resolve(c)
+						if err != nil {
+							return err
+						}
+
+						f.Set(reflect.ValueOf(instance))
+					}
+				}
+			}
+
+			return nil
 		}
-
-		reflect.ValueOf(receiver).Call(arguments)
-
-		return nil
 	}
 
-	return errors.New("the receiver must be either a reference or a callback")
+	return errors.New("invalid structure")
 }
