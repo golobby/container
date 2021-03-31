@@ -295,7 +295,7 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	assert.IsType(t, &MySQL{}, myApp.D)
 }
 
-func TestContainer_FillUnexported_With_Struct_Pointer(t *testing.T) {
+func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
