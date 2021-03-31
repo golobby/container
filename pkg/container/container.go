@@ -4,6 +4,7 @@ package container
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -113,6 +114,7 @@ func (c Container) Reset() {
 // It can take an abstraction (interface reference) and fill it with the related implementation.
 // It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, Container will invoke the receiver function and pass the related implementations.
+// Deprecated: Make is deprecated.
 func (c Container) Make(receiver interface{}) error {
 	receiverType := reflect.TypeOf(receiver)
 	if receiverType == nil {
@@ -120,32 +122,104 @@ func (c Container) Make(receiver interface{}) error {
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
-		abstraction := receiverType.Elem()
+		return c.Bind(receiver)
+	} else if receiverType.Kind() == reflect.Func {
+		return c.Call(receiver)
+	}
 
-		if concrete, ok := c[abstraction]; ok {
+	return errors.New("the receiver must be either a reference or a callback")
+}
+
+// Call takes a function with one or more arguments of the abstractions (interfaces) that need to be
+// resolved, Container will invoke the receiver function and pass the related implementations.
+func (c Container) Call(function interface{}) error {
+	receiverType := reflect.TypeOf(function)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the function")
+	}
+
+	if receiverType.Kind() == reflect.Func {
+		arguments, err := c.arguments(function)
+		if err != nil {
+			return err
+		}
+
+		reflect.ValueOf(function).Call(arguments)
+
+		return nil
+	}
+
+	return errors.New("invalid function")
+}
+
+// Bind takes an abstraction (interface reference) and fill it with the related implementation.
+func (c Container) Bind(abstraction interface{}) error {
+	receiverType := reflect.TypeOf(abstraction)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the abstraction")
+	}
+
+	if receiverType.Kind() == reflect.Ptr {
+		elem := receiverType.Elem()
+
+		if concrete, ok := c[elem]; ok {
 			instance, err := concrete.resolve(c)
 			if err != nil {
 				return err
 			}
 
-			reflect.ValueOf(receiver).Elem().Set(reflect.ValueOf(instance))
+			reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
 
 			return nil
 		}
 
-		return errors.New("no concrete found for the abstraction: " + abstraction.String())
+		return errors.New("no concrete found for the abstraction: " + elem.String())
 	}
 
-	if receiverType.Kind() == reflect.Func {
-		arguments, err := c.arguments(receiver)
-		if err != nil {
-			return err
-		}
+	return errors.New("invalid abstraction")
+}
 
-		reflect.ValueOf(receiver).Call(arguments)
+// Fill takes a struct and fills the fields with the tag `container:"inject"`
+func (c Container) Fill(structure interface{}) error {
+	receiverType := reflect.TypeOf(structure)
+	if receiverType == nil {
+		return errors.New("cannot detect type of the structure")
+	}
+	fmt.Println(receiverType)
+
+	var elem reflect.Type
+	if receiverType.Kind() == reflect.Ptr {
+		elem = receiverType.Elem()
+	} else {
+		elem = reflect.TypeOf(structure)
+	}
+
+	if elem.Kind() == reflect.Struct {
+		s := reflect.ValueOf(structure).Elem()
+
+		for i := 0; i < s.NumField(); i++ {
+			f := s.Field(i)
+
+			fmt.Println(f.Kind())
+
+			if s.Type().Field(i).Tag == "container:\"inject\"" {
+				if concrete, ok := c[f.Type()]; ok {
+					instance, err := concrete.resolve(c)
+					if err != nil {
+						return err
+					}
+
+					f.Set(reflect.ValueOf(instance))
+
+					continue
+				}
+
+				return errors.New(fmt.Sprintf("cannot resolve %v field", s.Type().Field(i).Name))
+			}
+		}
 
 		return nil
 	}
 
-	return errors.New("the receiver must be either a reference or a callback")
+	return errors.New("invalid structure")
 }
