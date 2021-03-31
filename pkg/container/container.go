@@ -202,7 +202,6 @@ func (c Container) Fill(structure interface{}) error {
 							return err
 						}
 
-						// support also unexported fields
 						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 						ptr.Set(reflect.ValueOf(instance))
 
