@@ -309,7 +309,8 @@ func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 	myApp := struct {
 		s Shape    `container:"inject"`
 		d Database `container:"inject"`
-		X string
+		x string   `container:"ignore"`
+		y int
 	}{}
 
 	err = instance.Fill(&myApp)
@@ -341,4 +342,3 @@ func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
 	err := instance.Fill(s)
 	assert.EqualError(t, err, "container: invalid structure")
 }
-
