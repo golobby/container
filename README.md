@@ -139,32 +139,32 @@ The `Fill()` method takes a struct (pointer) with fields of abstractions you nee
 
 ```go
 type Dependencies struct {
-    A Abstraction `container:"inject"`
-    X string
+    a Abstraction `container:"inject"`
+    x string
 }
 
 dep := Dependencies{}
 
 err := container.Fill(&dep)
-// `dep.A` will be an implementation of the Abstraction
-// `dep.X` will be ignored since it has no `container:"inject"` tag
+// `dep.a` will be an implementation of the Abstraction
+// `dep.x` will be ignored since it has no `container:"inject"` tag
 ```
 
 Example of resolving using refrences:
 
 ```go
 type App struct {
-    M Mailer   `container:"inject"`
-    D Database `container:"inject"`
-    X int
+    m Mailer   `container:"inject"`
+    d Database `container:"inject"`
+    x int
 }
 
 myApp := App{}
 
 err := container.Fill(&myApp)
-// `myApp.M` will be an implementation of the Mailer interface
-// `myApp.S` will be an implementation of the Database interface
-// `myApp.X` will be ignored since it has no `container:"inject"` tag
+// `myApp.m` will be an implementation of the Mailer interface
+// `myApp.s` will be an implementation of the Database interface
+// `myApp.x` will be ignored since it has no `container:"inject"` tag
 ```
 
 #### Binding time
