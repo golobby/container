@@ -295,7 +295,7 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	assert.IsType(t, &MySQL{}, myApp.D)
 }
 
-func TestContainer_Fill_With_Invalid_Field(t *testing.T) {
+func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
 	type App struct {
 		S string `container:"inject"`
 	}
@@ -306,8 +306,15 @@ func TestContainer_Fill_With_Invalid_Field(t *testing.T) {
 	assert.EqualError(t, err, "cannot resolve S field")
 }
 
-func TestContainer_Fill_With_Invalid_Struct(t *testing.T) {
+func TestContainer_Fill_With_Invalid_Struct_It_Should_Fail(t *testing.T) {
 	invalidStruct := 0
 	err := instance.Fill(&invalidStruct)
 	assert.EqualError(t, err, "invalid structure")
 }
+
+func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
+	var s Shape
+	err := instance.Fill(s)
+	assert.EqualError(t, err, "cannot detect type of the structure")
+}
+
