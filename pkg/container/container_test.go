@@ -60,7 +60,7 @@ func TestContainer_Singleton(t *testing.T) {
 
 func TestContainer_Singleton_With_NonFunction_Resolver_It_Should_Fail(t *testing.T) {
 	err := instance.Singleton("STRING!")
-	assert.EqualError(t, err, "the resolver must be a function")
+	assert.EqualError(t, err, "container: the resolver must be a function")
 }
 
 func TestContainer_Singleton_With_Resolvable_Arguments(t *testing.T) {
@@ -151,14 +151,14 @@ func TestContainer_Make_With_Reference_As_Resolver(t *testing.T) {
 // Deprecated: TestContainer_Make_With_Unsupported_Receiver_It_Should_Fail is deprecated.
 func TestContainer_Make_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
 	err := instance.Make("STRING!")
-	assert.EqualError(t, err, "the receiver must be either a reference or a callback")
+	assert.EqualError(t, err, "container: the receiver must be either a reference or a callback")
 }
 
 // Deprecated: TestContainer_Make_With_NonReference_Receiver_It_Should_Fail is deprecated.
 func TestContainer_Make_With_NonReference_Receiver_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Make(s)
-	assert.EqualError(t, err, "cannot detect type of the receiver")
+	assert.EqualError(t, err, "container: cannot detect type of the receiver")
 }
 
 // Deprecated: TestContainer_Make_With_UnBounded_Reference_It_Should_Fail is deprecated.
@@ -167,7 +167,7 @@ func TestContainer_Make_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
 
 	var s Shape
 	err := instance.Make(&s)
-	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Shape")
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
 }
 
 // Deprecated: TestContainer_Make_With_Second_UnBounded_Argument is deprecated.
@@ -180,7 +180,7 @@ func TestContainer_Make_With_Second_UnBounded_Argument(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = instance.Make(func(s Shape, d Database) {})
-	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Database")
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
 }
 
 func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {
@@ -208,7 +208,7 @@ func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {
 
 func TestContainer_Call_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
 	err := instance.Call("STRING!")
-	assert.EqualError(t, err, "invalid function")
+	assert.EqualError(t, err, "container: invalid function")
 }
 
 func TestContainer_Call_With_Second_UnBounded_Argument(t *testing.T) {
@@ -220,7 +220,7 @@ func TestContainer_Call_With_Second_UnBounded_Argument(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = instance.Call(func(s Shape, d Database) {})
-	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Database")
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
 }
 
 func TestContainer_Bind_With_Reference_As_Resolver(t *testing.T) {
@@ -254,13 +254,13 @@ func TestContainer_Bind_With_Reference_As_Resolver(t *testing.T) {
 
 func TestContainer_Bind_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
 	err := instance.Bind("STRING!")
-	assert.EqualError(t, err, "invalid abstraction")
+	assert.EqualError(t, err, "container: invalid abstraction")
 }
 
 func TestContainer_Bind_With_NonReference_Receiver_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Bind(s)
-	assert.EqualError(t, err, "cannot detect type of the abstraction")
+	assert.EqualError(t, err, "container: invalid abstraction")
 }
 
 func TestContainer_Bind_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
@@ -268,7 +268,7 @@ func TestContainer_Bind_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
 
 	var s Shape
 	err := instance.Bind(&s)
-	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Shape")
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
 }
 
 func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
@@ -327,18 +327,18 @@ func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
 	myApp := App{}
 
 	err := instance.Fill(&myApp)
-	assert.EqualError(t, err, "cannot resolve S field")
+	assert.EqualError(t, err, "container: cannot resolve S field")
 }
 
 func TestContainer_Fill_With_Invalid_Struct_It_Should_Fail(t *testing.T) {
 	invalidStruct := 0
 	err := instance.Fill(&invalidStruct)
-	assert.EqualError(t, err, "invalid structure")
+	assert.EqualError(t, err, "container: invalid structure")
 }
 
 func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Fill(s)
-	assert.EqualError(t, err, "cannot detect type of the structure")
+	assert.EqualError(t, err, "container: invalid structure")
 }
 

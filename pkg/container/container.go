@@ -36,7 +36,7 @@ func New() Container {
 func (c Container) bind(resolver interface{}, singleton bool) error {
 	reflectedResolver := reflect.TypeOf(resolver)
 	if reflectedResolver.Kind() != reflect.Func {
-		return errors.New("the resolver must be a function")
+		return errors.New("container: the resolver must be a function")
 	}
 
 	for i := 0; i < reflectedResolver.NumOut(); i++ {
@@ -83,7 +83,7 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 
 			arguments[i] = reflect.ValueOf(instance)
 		} else {
-			return nil, errors.New("no concrete found for the abstraction: " + abstraction.String())
+			return nil, errors.New("container: no concrete found for: " + abstraction.String())
 		}
 	}
 
@@ -119,7 +119,7 @@ func (c Container) Reset() {
 func (c Container) Make(receiver interface{}) error {
 	receiverType := reflect.TypeOf(receiver)
 	if receiverType == nil {
-		return errors.New("cannot detect type of the receiver")
+		return errors.New("container: cannot detect type of the receiver")
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
@@ -128,7 +128,7 @@ func (c Container) Make(receiver interface{}) error {
 		return c.Call(receiver)
 	}
 
-	return errors.New("the receiver must be either a reference or a callback")
+	return errors.New("container: the receiver must be either a reference or a callback")
 }
 
 // Call takes a function with one or more arguments of the abstractions (interfaces) that need to be
@@ -136,7 +136,7 @@ func (c Container) Make(receiver interface{}) error {
 func (c Container) Call(function interface{}) error {
 	receiverType := reflect.TypeOf(function)
 	if receiverType == nil {
-		return errors.New("cannot detect type of the function")
+		return errors.New("container: invalid function")
 	}
 
 	if receiverType.Kind() == reflect.Func {
@@ -150,14 +150,14 @@ func (c Container) Call(function interface{}) error {
 		return nil
 	}
 
-	return errors.New("invalid function")
+	return errors.New("container: invalid function")
 }
 
 // Bind takes an abstraction (interface reference) and fill it with the related implementation.
 func (c Container) Bind(abstraction interface{}) error {
 	receiverType := reflect.TypeOf(abstraction)
 	if receiverType == nil {
-		return errors.New("cannot detect type of the abstraction")
+		return errors.New("container: invalid abstraction")
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
@@ -174,17 +174,17 @@ func (c Container) Bind(abstraction interface{}) error {
 			return nil
 		}
 
-		return errors.New("no concrete found for the abstraction: " + elem.String())
+		return errors.New("container: no concrete found for: " + elem.String())
 	}
 
-	return errors.New("invalid abstraction")
+	return errors.New("container: invalid abstraction")
 }
 
 // Fill takes a struct and fills the fields with the tag `container:"inject"`
 func (c Container) Fill(structure interface{}) error {
 	receiverType := reflect.TypeOf(structure)
 	if receiverType == nil {
-		return errors.New("cannot detect type of the structure")
+		return errors.New("container: invalid structure")
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
@@ -208,7 +208,7 @@ func (c Container) Fill(structure interface{}) error {
 						continue
 					}
 
-					return errors.New(fmt.Sprintf("cannot resolve %v field", s.Type().Field(i).Name))
+					return errors.New(fmt.Sprintf("container: cannot resolve %v field", s.Type().Field(i).Name))
 				}
 			}
 
@@ -216,5 +216,5 @@ func (c Container) Fill(structure interface{}) error {
 		}
 	}
 
-	return errors.New("invalid structure")
+	return errors.New("container: invalid structure")
 }
