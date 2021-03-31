@@ -84,7 +84,7 @@ In the example above, the container always returns a brand new Rectangle instanc
 
 ### Resolving
 
-Container resolves the dependencies with the method `make()`.
+Container resolves the dependencies with the `Bind()`, `Call()`, and `Fill()` methods.
 
 #### Using References
 
