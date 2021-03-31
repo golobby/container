@@ -40,7 +40,7 @@ err := container.Singleton(func() Config {
 })
 
 var c Config
-err := container.Make(&c)
+err := container.Bind(&c)
 // `c` will be an instance of JsonConfig
 ```
 
@@ -88,11 +88,11 @@ Container resolves the dependencies with the method `make()`.
 
 #### Using References
 
-The easiest way to resolve a dependency is to declare an instance of the abstraction type and pass its reference to Container.
+The `Bind()` method takes a reference of the abstraction type and fills it with the appropriate concrete from the container.
 
 ```go
 var a Abstraction
-err := container.Make(&a)
+err := container.Bind(&a)
 // `a` will be an implementation of the Abstraction
 ```
 
@@ -100,18 +100,17 @@ Example of resolving using refrences:
 
 ```go
 var m Mailer
-err := container.Make(&m)
+err := container.Bind(&m)
 // `m` will be an implementation of the Mailer interface
-m.Send("info@miladrahimi.com", "Hello Milad!")
+m.Send("contact@miladrahimi.com", "Hello Milad!")
 ```
 
 #### Using Closures
 
-The most common way to resolve dependencies is using a function (receiver) with arguments of abstractions you need.
-The Container will invoke the function and pass the implementations.
+The `Call()` method takes a function (receiver) with arguments of abstractions you need and invokes it with parameters of appropriate concretes from the container.
 
 ```go
-err := container.Make(func(a Abstraction) {
+err := container.Call(func(a Abstraction) {
     // `a` will be an implementation of the Abstraction
 })
 ```
@@ -119,7 +118,7 @@ err := container.Make(func(a Abstraction) {
 Example of resolving using closures:
 
 ```go
-err := container.Make(func(db Database) {
+err := container.Call(func(db Database) {
   // `db` will be an implementation of the Database interface
   db.Query("...")
 })
@@ -128,10 +127,44 @@ err := container.Make(func(db Database) {
 You can also resolve multiple abstractions like tho follwing example:
 
 ```go
-err := container.Make(func(db Database, s Shape) {
+err := container.Call(func(db Database, s Shape) {
   db.Query("...")
   s.Area()
 })
+```
+
+#### Using Structs
+
+The `Fill()` method takes a struct (pointer) with fields of abstractions you need and fills the fields.
+
+```go
+type Dependencies struct {
+    A Abstraction `container:"inject"`
+	X string
+}
+
+dep := Dependencies{}
+
+err := container.Fill(&dep)
+// `dep.A` will be an implementation of the Abstraction
+// `dep.X` will be ignored since it has no `container:"inject"` tag
+```
+
+Example of resolving using refrences:
+
+```go
+type App struct {
+    M Mailer   `container:"inject"`
+    D Database `container:"inject"`
+	X int
+}
+
+myApp := App{}
+
+err := container.Fill(&myApp)
+// `myApp.M` will be an implementation of the Mailer interface
+// `myApp.S` will be an implementation of the Database interface
+// `myApp.X` will be ignored since it has no `container:"inject"` tag
 ```
 
 #### Binding time
@@ -171,7 +204,7 @@ err := c.Singleton(func() Database {
     return &MySQL{}
 })
 
-err := c.Make(func(db Database) {
+err := c.Call(func(db Database) {
     db.Query("...")
 })
 ```
