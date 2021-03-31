@@ -295,6 +295,30 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	assert.IsType(t, &MySQL{}, myApp.D)
 }
 
+func TestContainer_FillUnexported_With_Struct_Pointer(t *testing.T) {
+	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Singleton(func() Database {
+		return &MySQL{}
+	})
+	assert.NoError(t, err)
+
+	myApp := struct {
+		s Shape    `container:"inject"`
+		d Database `container:"inject"`
+		X string
+	}{}
+
+	err = instance.Fill(&myApp)
+	assert.NoError(t, err)
+
+	assert.IsType(t, &Circle{}, myApp.s)
+	assert.IsType(t, &MySQL{}, myApp.d)
+}
+
 func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
 	type App struct {
 		S string `container:"inject"`

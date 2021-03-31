@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"unsafe"
 )
 
 // binding keeps a binding resolver and an instance (for singleton bindings).
@@ -201,7 +202,9 @@ func (c Container) Fill(structure interface{}) error {
 							return err
 						}
 
-						f.Set(reflect.ValueOf(instance))
+						// support also unexported fields
+						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+						ptr.Set(reflect.ValueOf(instance))
 
 						continue
 					}
