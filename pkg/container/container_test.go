@@ -271,7 +271,7 @@ func TestContainer_Bind_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
 	assert.EqualError(t, err, "no concrete found for the abstraction: container_test.Shape")
 }
 
-func TestContainer_Fill(t *testing.T) {
+func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})

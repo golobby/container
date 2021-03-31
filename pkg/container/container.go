@@ -185,40 +185,33 @@ func (c Container) Fill(structure interface{}) error {
 	if receiverType == nil {
 		return errors.New("cannot detect type of the structure")
 	}
-	fmt.Println(receiverType)
 
-	var elem reflect.Type
 	if receiverType.Kind() == reflect.Ptr {
-		elem = receiverType.Elem()
-	} else {
-		elem = reflect.TypeOf(structure)
-	}
+		elem := receiverType.Elem()
+		if elem.Kind() == reflect.Struct {
+			s := reflect.ValueOf(structure).Elem()
 
-	if elem.Kind() == reflect.Struct {
-		s := reflect.ValueOf(structure).Elem()
+			for i := 0; i < s.NumField(); i++ {
+				f := s.Field(i)
 
-		for i := 0; i < s.NumField(); i++ {
-			f := s.Field(i)
+				if s.Type().Field(i).Tag == "container:\"inject\"" {
+					if concrete, ok := c[f.Type()]; ok {
+						instance, err := concrete.resolve(c)
+						if err != nil {
+							return err
+						}
 
-			fmt.Println(f.Kind())
+						f.Set(reflect.ValueOf(instance))
 
-			if s.Type().Field(i).Tag == "container:\"inject\"" {
-				if concrete, ok := c[f.Type()]; ok {
-					instance, err := concrete.resolve(c)
-					if err != nil {
-						return err
+						continue
 					}
 
-					f.Set(reflect.ValueOf(instance))
-
-					continue
+					return errors.New(fmt.Sprintf("cannot resolve %v field", s.Type().Field(i).Name))
 				}
-
-				return errors.New(fmt.Sprintf("cannot resolve %v field", s.Type().Field(i).Name))
 			}
-		}
 
-		return nil
+			return nil
+		}
 	}
 
 	return errors.New("invalid structure")
