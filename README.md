@@ -140,7 +140,7 @@ The `Fill()` method takes a struct (pointer) with fields of abstractions you nee
 ```go
 type Dependencies struct {
     A Abstraction `container:"inject"`
-	X string
+    X string
 }
 
 dep := Dependencies{}
@@ -156,7 +156,7 @@ Example of resolving using refrences:
 type App struct {
     M Mailer   `container:"inject"`
     D Database `container:"inject"`
-	X int
+    X int
 }
 
 myApp := App{}
