@@ -195,7 +195,7 @@ func (c Container) Fill(structure interface{}) error {
 			for i := 0; i < s.NumField(); i++ {
 				f := s.Field(i)
 
-				if s.Type().Field(i).Tag == "container:\"inject\"" {
+				if t, ok := s.Type().Field(i).Tag.Lookup("container"); ok && t == "inject" {
 					if concrete, ok := c[f.Type()]; ok {
 						instance, err := concrete.resolve(c)
 						if err != nil {
