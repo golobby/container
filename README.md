@@ -21,13 +21,13 @@ go get github.com/golobby/container/v2
 ```
 
 ### Introduction
-This container like any other IoC dependency injection container is used to bind abstractions to their implementations.
-Binding is the process of introducing appropriate concretes (implementations) of abstractions to an IoC container.
+This package is an IoC (dependency injection) container. It can bind abstractions to implementations.
+Binding is the process of introducing appropriate concretes (implementations) to an IoC container.
 In this process, you also determine the resolving type, singleton or transient.
-In singleton bindings, the container provides an instance once and returns it for all requests.
-In transient bindings, the container always returns a brand new instance for each request.
-After the binding process, you can ask the IoC container to make the appropriate implementation of the abstraction that your code depends on.
-Now your code depends on abstractions, not implementations.
+In singleton bindings, the container provides an instance once and reuses in the rest of the injections.
+In transient bindings, the container always returns a brand new instance for each injection.
+After the binding process, you can ask the IoC container for the appropriate implementation of the abstraction.
+Then your code will depend on abstractions, not implementations.
 
 ### Quick Start
 
