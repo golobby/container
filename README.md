@@ -88,7 +88,7 @@ Container resolves the dependencies with the `Bind()`, `Call()`, and `Fill()` me
 
 #### Using References
 
-The `Bind()` method takes a reference of the abstraction type and fills it with the appropriate concrete from the container.
+The `Bind()` method takes a reference of the abstraction type and binds it to the appropriate concrete from the container.
 
 ```go
 var a Abstraction
