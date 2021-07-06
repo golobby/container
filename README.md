@@ -150,7 +150,7 @@ err := container.Fill(&dep)
 // `dep.x` will be ignored since it has no `container:"inject"` tag
 ```
 
-Example of resolving using refrences:
+Example of resolving using Structs:
 
 ```go
 type App struct {
