@@ -137,19 +137,6 @@ err := container.Call(func(db Database, s Shape) {
 
 The `Fill()` method takes a struct (pointer) with fields of abstractions you need and fills the fields.
 
-```go
-type Dependencies struct {
-    a Abstraction `container:"inject"`
-    x string
-}
-
-dep := Dependencies{}
-
-err := container.Fill(&dep)
-// `dep.a` will be an implementation of the Abstraction
-// `dep.x` will be ignored since it has no `container:"inject"` tag
-```
-
 Example of resolving using Structs:
 
 ```go
