@@ -189,8 +189,6 @@ err := container.Singleton(func(c Config) Database {
 })
 ```
 
-Notice: You can only resolve the dependencies in a binding resolver function that exists in the container.
-
 ### Standalone instance
 
 In default, the Container keeps your bindings in the global instance.
