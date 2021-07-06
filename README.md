@@ -201,10 +201,8 @@ The global container is still available.
 
 #### Performance
 The package Container inevitably uses reflection in binding and resolving processes. 
-If performance is a concern, you should use this package more carefully. 
-Try to bind and resolve the dependencies out of the processes that are going to run many times 
-(for example, on each request), put it where that run only once when you run your applications 
-like main and init functions.
+If performance is a concern, try to bind and resolve the dependencies out of the processes that run many times (for example, HTTP handlers).
+Place it where that runs only once when you run your application like main and init functions, instead.
 
 ## License
 
