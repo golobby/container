@@ -3,7 +3,7 @@
 package container
 
 import (
-	internal "github.com/golobby/container/v2/pkg/container"
+	internal "github.com/golobby/container/v3/pkg/container"
 )
 
 // New creates a new standalone instance of Container
@@ -33,24 +33,15 @@ func Reset() {
 	container.Reset()
 }
 
-// Make will resolve the dependency and return a appropriate concrete of the given abstraction.
-// It can take an abstraction (interface reference) and fill it with the related implementation.
-// It also can takes a function (receiver) with one or more arguments of the abstractions (interfaces) that need to be
-// resolved, Container will invoke the receiver function and pass the related implementations.
-// Deprecated: Make is deprecated.
-func Make(receiver interface{}) error {
-	return container.Make(receiver)
-}
-
 // Call takes a function with one or more arguments of the abstractions (interfaces) that need to be
 // resolved, Container will invoke the receiver function and pass the related implementations.
 func Call(receiver interface{}) error {
 	return container.Call(receiver)
 }
 
-// Bind takes an abstraction (interface reference) and fill it with the related implementation.
-func Bind(receiver interface{}) error {
-	return container.Bind(receiver)
+// Resolve takes an abstraction (interface reference) and fill it with the related implementation.
+func Resolve(abstraction interface{}) error {
+	return container.Resolve(abstraction)
 }
 
 // Fill takes a struct and fills the fields with the tag `container:"inject"`

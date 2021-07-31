@@ -17,7 +17,7 @@ It requires Go `v1.11` or newer versions.
 To install this package, run the following command in the root of your project.
 
 ```bash
-go get github.com/golobby/container/v2
+go get github.com/golobby/container/v3
 ```
 
 ### Introduction
