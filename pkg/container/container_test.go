@@ -76,6 +76,18 @@ func TestContainer_Singleton_With_Resolvable_Arguments(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_NamedSingleton(t *testing.T) {
+	err := instance.NamedSingleton("theCircle", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	var sh Shape
+	err = instance.NamedResolve(&sh, "theCircle")
+	assert.NoError(t, err)
+	assert.Equal(t, sh.GetArea(), 13)
+}
+
 func TestContainer_Transient(t *testing.T) {
 	err := instance.Transient(func() Shape {
 		return &Circle{a: 666}
@@ -92,6 +104,18 @@ func TestContainer_Transient(t *testing.T) {
 		assert.Equal(t, a, 666)
 	})
 	assert.NoError(t, err)
+}
+
+func TestContainer_NamedTransient(t *testing.T) {
+	err := instance.NamedTransient("theCircle", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	var sh Shape
+	err = instance.NamedResolve(&sh, "theCircle")
+	assert.NoError(t, err)
+	assert.Equal(t, sh.GetArea(), 13)
 }
 
 func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {
@@ -188,6 +212,11 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	err = instance.NamedSingleton("C", func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
 	err = instance.Singleton(func() Database {
 		return &MySQL{}
 	})
@@ -196,6 +225,7 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	myApp := struct {
 		S Shape    `container:"type"`
 		D Database `container:"type"`
+		C Shape    `container:"name"`
 		X string
 	}{}
 
@@ -231,8 +261,24 @@ func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 }
 
 func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
+	err := instance.NamedSingleton("C", func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
 	type App struct {
 		S string `container:"type"`
+	}
+
+	myApp := App{}
+
+	err = instance.Fill(&myApp)
+	assert.EqualError(t, err, "container: cannot resolve S field")
+}
+
+func TestContainer_Fill_With_Invalid_Field_Name_It_Should_Fail(t *testing.T) {
+	type App struct {
+		S string `container:"name"`
 	}
 
 	myApp := App{}

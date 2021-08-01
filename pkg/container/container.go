@@ -219,7 +219,7 @@ func (c Container) Fill(structure interface{}) error {
 						continue
 					}
 
-					return errors.New(fmt.Sprintf("container: cannot resolve %v field", name))
+					return errors.New(fmt.Sprintf("container: cannot resolve %v field", s.Type().Field(i).Name))
 				}
 			}
 
