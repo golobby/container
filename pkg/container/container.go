@@ -129,22 +129,18 @@ func (c Container) Reset() {
 // It invokes the function (receiver) and passes the related implementations.
 func (c Container) Call(function interface{}) error {
 	receiverType := reflect.TypeOf(function)
-	if receiverType == nil {
+	if receiverType == nil || receiverType.Kind() != reflect.Func {
 		return errors.New("container: invalid function")
 	}
 
-	if receiverType.Kind() == reflect.Func {
-		arguments, err := c.arguments(function)
-		if err != nil {
-			return err
-		}
-
-		reflect.ValueOf(function).Call(arguments)
-
-		return nil
+	arguments, err := c.arguments(function)
+	if err != nil {
+		return err
 	}
 
-	return errors.New("container: invalid function")
+	reflect.ValueOf(function).Call(arguments)
+
+	return nil
 }
 
 // Resolve takes an abstraction (interface reference) and fills it with the related implementation.
@@ -203,7 +199,7 @@ func (c Container) Fill(structure interface{}) error {
 						name = s.Type().Field(i).Name
 					} else {
 						return errors.New(
-							fmt.Sprintf("container: %v is a invalid struct tag", s.Type().Field(i).Name),
+							fmt.Sprintf("container: %v has an invalid struct tag", s.Type().Field(i).Name),
 						)
 					}
 

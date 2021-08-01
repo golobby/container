@@ -21,11 +21,21 @@ func Singleton(resolver interface{}) error {
 	return container.Singleton(resolver)
 }
 
+// NamedSingleton binds like the Singleton method but for named bindings.
+func NamedSingleton(name string, resolver interface{}) error {
+	return container.NamedSingleton(name, resolver)
+}
+
 // Transient will bind an abstraction to a concrete for further transient resolves.
 // It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have bound already in Container.
 func Transient(resolver interface{}) error {
 	return container.Transient(resolver)
+}
+
+// NamedTransient binds like the Transient method but for named bindings.
+func NamedTransient(name string, resolver interface{}) error {
+	return container.NamedTransient(name, resolver)
 }
 
 // Reset will reset the container and remove all the existing bindings.
@@ -42,6 +52,11 @@ func Call(receiver interface{}) error {
 // Resolve takes an abstraction (interface reference) and fill it with the related implementation.
 func Resolve(abstraction interface{}) error {
 	return container.Resolve(abstraction)
+}
+
+// NamedResolve resolves like the Resolve method but for named bindings.
+func NamedResolve(abstraction interface{}, name string) error {
+	return container.NamedResolve(abstraction, name)
 }
 
 // Fill takes a struct and fills the fields with the tag `container:"inject"`

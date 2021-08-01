@@ -267,13 +267,24 @@ func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
 	assert.NoError(t, err)
 
 	type App struct {
-		S string `container:"type"`
+		S string `container:"name"`
 	}
 
 	myApp := App{}
 
 	err = instance.Fill(&myApp)
 	assert.EqualError(t, err, "container: cannot resolve S field")
+}
+
+func TestContainer_Fill_With_Invalid_Tag_It_Should_Fail(t *testing.T) {
+	type App struct {
+		S string `container:"invalid"`
+	}
+
+	myApp := App{}
+
+	err := instance.Fill(&myApp)
+	assert.EqualError(t, err, "container: S has an invalid struct tag")
 }
 
 func TestContainer_Fill_With_Invalid_Field_Name_It_Should_Fail(t *testing.T) {
