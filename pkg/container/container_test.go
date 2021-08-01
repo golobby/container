@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/golobby/container/v2/pkg/container"
+	"github.com/golobby/container/v3/pkg/container"
 )
 
 type Shape interface {
@@ -76,6 +76,18 @@ func TestContainer_Singleton_With_Resolvable_Arguments(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_NamedSingleton(t *testing.T) {
+	err := instance.NamedSingleton("theCircle", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	var sh Shape
+	err = instance.NamedResolve(&sh, "theCircle")
+	assert.NoError(t, err)
+	assert.Equal(t, sh.GetArea(), 13)
+}
+
 func TestContainer_Transient(t *testing.T) {
 	err := instance.Transient(func() Shape {
 		return &Circle{a: 666}
@@ -94,93 +106,16 @@ func TestContainer_Transient(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// Deprecated: TestContainer_Make_With_Multiple_Resolving is deprecated.
-func TestContainer_Make_With_Multiple_Resolving(t *testing.T) {
-	err := instance.Singleton(func() Shape {
-		return &Circle{a: 5}
+func TestContainer_NamedTransient(t *testing.T) {
+	err := instance.NamedTransient("theCircle", func() Shape {
+		return &Circle{a: 13}
 	})
 	assert.NoError(t, err)
 
-	err = instance.Singleton(func() Database {
-		return &MySQL{}
-	})
+	var sh Shape
+	err = instance.NamedResolve(&sh, "theCircle")
 	assert.NoError(t, err)
-
-	err = instance.Make(func(s Shape, m Database) {
-		if _, ok := s.(*Circle); !ok {
-			t.Error("Expected Circle")
-		}
-
-		if _, ok := m.(*MySQL); !ok {
-			t.Error("Expected MySQL")
-		}
-	})
-	assert.NoError(t, err)
-}
-
-// Deprecated: TestContainer_Make_With_Reference_As_Resolver is deprecated.
-func TestContainer_Make_With_Reference_As_Resolver(t *testing.T) {
-	err := instance.Singleton(func() Shape {
-		return &Circle{a: 5}
-	})
-	assert.NoError(t, err)
-
-	err = instance.Singleton(func() Database {
-		return &MySQL{}
-	})
-	assert.NoError(t, err)
-
-	var (
-		s Shape
-		d Database
-	)
-
-	err = instance.Make(&s)
-	assert.NoError(t, err)
-	if _, ok := s.(*Circle); !ok {
-		t.Error("Expected Circle")
-	}
-
-	err = instance.Make(&d)
-	assert.NoError(t, err)
-	if _, ok := d.(*MySQL); !ok {
-		t.Error("Expected MySQL")
-	}
-}
-
-// Deprecated: TestContainer_Make_With_Unsupported_Receiver_It_Should_Fail is deprecated.
-func TestContainer_Make_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
-	err := instance.Make("STRING!")
-	assert.EqualError(t, err, "container: the receiver must be either a reference or a callback")
-}
-
-// Deprecated: TestContainer_Make_With_NonReference_Receiver_It_Should_Fail is deprecated.
-func TestContainer_Make_With_NonReference_Receiver_It_Should_Fail(t *testing.T) {
-	var s Shape
-	err := instance.Make(s)
-	assert.EqualError(t, err, "container: cannot detect type of the receiver")
-}
-
-// Deprecated: TestContainer_Make_With_UnBounded_Reference_It_Should_Fail is deprecated.
-func TestContainer_Make_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
-	instance.Reset()
-
-	var s Shape
-	err := instance.Make(&s)
-	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
-}
-
-// Deprecated: TestContainer_Make_With_Second_UnBounded_Argument is deprecated.
-func TestContainer_Make_With_Second_UnBounded_Argument(t *testing.T) {
-	instance.Reset()
-
-	err := instance.Singleton(func() Shape {
-		return &Circle{}
-	})
-	assert.NoError(t, err)
-
-	err = instance.Make(func(s Shape, d Database) {})
-	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
+	assert.Equal(t, sh.GetArea(), 13)
 }
 
 func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {
@@ -223,7 +158,7 @@ func TestContainer_Call_With_Second_UnBounded_Argument(t *testing.T) {
 	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
 }
 
-func TestContainer_Bind_With_Reference_As_Resolver(t *testing.T) {
+func TestContainer_Resolve_With_Reference_As_Resolver(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
 	})
@@ -239,40 +174,45 @@ func TestContainer_Bind_With_Reference_As_Resolver(t *testing.T) {
 		d Database
 	)
 
-	err = instance.Bind(&s)
+	err = instance.Resolve(&s)
 	assert.NoError(t, err)
 	if _, ok := s.(*Circle); !ok {
 		t.Error("Expected Circle")
 	}
 
-	err = instance.Bind(&d)
+	err = instance.Resolve(&d)
 	assert.NoError(t, err)
 	if _, ok := d.(*MySQL); !ok {
 		t.Error("Expected MySQL")
 	}
 }
 
-func TestContainer_Bind_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
-	err := instance.Bind("STRING!")
+func TestContainer_Resolve_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
+	err := instance.Resolve("STRING!")
 	assert.EqualError(t, err, "container: invalid abstraction")
 }
 
-func TestContainer_Bind_With_NonReference_Receiver_It_Should_Fail(t *testing.T) {
+func TestContainer_Resolve_With_NonReference_Receiver_It_Should_Fail(t *testing.T) {
 	var s Shape
-	err := instance.Bind(s)
+	err := instance.Resolve(s)
 	assert.EqualError(t, err, "container: invalid abstraction")
 }
 
-func TestContainer_Bind_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
+func TestContainer_Resolve_With_UnBounded_Reference_It_Should_Fail(t *testing.T) {
 	instance.Reset()
 
 	var s Shape
-	err := instance.Bind(&s)
+	err := instance.Resolve(&s)
 	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
 }
 
 func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.NamedSingleton("C", func() Shape {
 		return &Circle{a: 5}
 	})
 	assert.NoError(t, err)
@@ -283,8 +223,9 @@ func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {
 	assert.NoError(t, err)
 
 	myApp := struct {
-		S Shape    `container:"inject"`
-		D Database `container:"inject"`
+		S Shape    `container:"type"`
+		D Database `container:"type"`
+		C Shape    `container:"name"`
 		X string
 	}{}
 
@@ -307,9 +248,8 @@ func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 	assert.NoError(t, err)
 
 	myApp := struct {
-		s Shape    `container:"inject"`
-		d Database `container:"inject"`
-		x string   `container:"ignore"`
+		s Shape    `container:"type"`
+		d Database `container:"type"`
 		y int
 	}{}
 
@@ -321,8 +261,35 @@ func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 }
 
 func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
+	err := instance.NamedSingleton("C", func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
 	type App struct {
-		S string `container:"inject"`
+		S string `container:"name"`
+	}
+
+	myApp := App{}
+
+	err = instance.Fill(&myApp)
+	assert.EqualError(t, err, "container: cannot resolve S field")
+}
+
+func TestContainer_Fill_With_Invalid_Tag_It_Should_Fail(t *testing.T) {
+	type App struct {
+		S string `container:"invalid"`
+	}
+
+	myApp := App{}
+
+	err := instance.Fill(&myApp)
+	assert.EqualError(t, err, "container: S has an invalid struct tag")
+}
+
+func TestContainer_Fill_With_Invalid_Field_Name_It_Should_Fail(t *testing.T) {
+	type App struct {
+		S string `container:"name"`
 	}
 
 	myApp := App{}
