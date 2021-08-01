@@ -29,6 +29,7 @@ In transient bindings, the container always returns a brand-new instance for eac
 After the binding process, you can ask the IoC container to make the appropriate implementation of the abstraction that your code needs.
 Then your code will depend on abstractions, not implementations!
 
+
 ### Quick Start
 
 The following example demonstrates a simple binding and resolving.
