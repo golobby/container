@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/golobby/container/v3?status.svg)](https://godoc.org/github.com/golobby/container/v2)
+[![GoDoc](https://godoc.org/github.com/golobby/container/v3?status.svg)](https://godoc.org/github.com/golobby/container/v3)
 [![CI](https://github.com/golobby/container/actions/workflows/ci.yml/badge.svg)](https://github.com/golobby/container/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/golobby/container/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/golobby/container/actions/workflows/codeql-analysis.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/golobby/container)](https://goreportcard.com/report/github.com/golobby/container)
