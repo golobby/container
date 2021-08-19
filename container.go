@@ -14,9 +14,9 @@ func New() internal.Container {
 // container is the global repository of bindings
 var container = New()
 
-// Singleton will bind an abstraction to a concrete for further singleton resolves.
-// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
-// The resolver function can have arguments of abstraction that have bound already in Container.
+// Singleton binds an abstraction to concrete for further singleton resolves.
+// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have been declared in the Container already.
 func Singleton(resolver interface{}) error {
 	return container.Singleton(resolver)
 }
@@ -26,9 +26,9 @@ func NamedSingleton(name string, resolver interface{}) error {
 	return container.NamedSingleton(name, resolver)
 }
 
-// Transient will bind an abstraction to a concrete for further transient resolves.
-// It takes a resolver function which returns the concrete and its return type matches the abstraction (interface).
-// The resolver function can have arguments of abstraction that have bound already in Container.
+// Transient binds an abstraction to concrete for further transient resolves.
+// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have been declared in the Container already.
 func Transient(resolver interface{}) error {
 	return container.Transient(resolver)
 }
@@ -38,18 +38,18 @@ func NamedTransient(name string, resolver interface{}) error {
 	return container.NamedTransient(name, resolver)
 }
 
-// Reset will reset the container and remove all the existing bindings.
+// Reset deletes all the existing bindings and empties the container instance.
 func Reset() {
 	container.Reset()
 }
 
-// Call takes a function with one or more arguments of the abstractions (interfaces) that need to be
-// resolved, Container will invoke the receiver function and pass the related implementations.
+// Call takes a function (receiver) with one or more arguments of the abstractions (interfaces).
+// It invokes the function (receiver) and passes the related implementations.
 func Call(receiver interface{}) error {
 	return container.Call(receiver)
 }
 
-// Resolve takes an abstraction (interface reference) and fill it with the related implementation.
+// Resolve takes an abstraction (interface reference) and fills it with the related implementation.
 func Resolve(abstraction interface{}) error {
 	return container.Resolve(abstraction)
 }
@@ -59,7 +59,7 @@ func NamedResolve(abstraction interface{}, name string) error {
 	return container.NamedResolve(abstraction, name)
 }
 
-// Fill takes a struct and fills the fields with the tag `container:"inject"`
+// Fill takes a struct and resolves the fields with the tag `container:"inject"`
 func Fill(receiver interface{}) error {
 	return container.Fill(receiver)
 }
