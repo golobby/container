@@ -80,10 +80,7 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 		abstraction := reflectedFunction.In(i)
 
 		if concrete, exist := c[abstraction][""]; exist {
-			instance, err := concrete.resolve(c)
-			if err != nil {
-				return nil, err
-			}
+			instance, _ := concrete.resolve(c)
 
 			arguments[i] = reflect.ValueOf(instance)
 		} else {
