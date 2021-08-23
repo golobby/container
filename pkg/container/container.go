@@ -159,10 +159,7 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 		elem := receiverType.Elem()
 
 		if concrete, exist := c[elem][name]; exist {
-			instance, err := concrete.resolve(c)
-			if err != nil {
-				return err
-			}
+			instance, _ := concrete.resolve(c)
 
 			reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
 
@@ -204,10 +201,7 @@ func (c Container) Fill(structure interface{}) error {
 					}
 
 					if concrete, exist := c[f.Type()][name]; exist {
-						instance, err := concrete.resolve(c)
-						if err != nil {
-							return err
-						}
+						instance, _ := concrete.resolve(c)
 
 						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 						ptr.Set(reflect.ValueOf(instance))
