@@ -76,6 +76,15 @@ func TestContainer_Singleton_With_Resolvable_Arguments(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_Singleton_With_Non_Resolvable_Arguments(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Singleton(func(s Shape) Shape {
+		return &Circle{a: s.GetArea()}
+	})
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
+}
+
 func TestContainer_NamedSingleton(t *testing.T) {
 	err := instance.NamedSingleton("theCircle", func() Shape {
 		return &Circle{a: 13}
