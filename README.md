@@ -6,11 +6,10 @@
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome) 
 
 # Container
-GoLobby Container is a lightweight yet powerful IoC dependency injection container for Go projects.
-It is an easy-to-use and performance-in-mind dependency injection container to be your ultimate requirement.
+GoLobby Container is a lightweight yet powerful IoC (dependency injection) container for Go projects.
+It's built neat, easy-to-use, and performance-in-mind to be your ultimate requirement.
 
 ## Documentation
-
 ### Required Go Versions
 It requires Go `v1.11` or newer versions.
 
@@ -30,13 +29,11 @@ In transient bindings, the container always returns a brand-new instance for eac
 After the binding process, you can ask the IoC container to make the appropriate implementation of the abstraction that your code needs.
 Then your code will depend on abstractions, not implementations!
 
-
 ### Quick Start
-
 The following example demonstrates a simple binding and resolving.
 
 ```go
-// Bind Config (interface) to JsonConfig (struct)
+// Bind Config interface to JsonConfig struct
 err := container.Singleton(func() Config {
     return &JsonConfig{...}
 })
@@ -47,10 +44,8 @@ err := container.Bind(&c)
 ```
 
 ### Typed Binding
-
 #### Singleton
-
-Singleton binding using Container:
+The following snippet expresses singleton binding.
 
 ```go
 err := container.Singleton(func() Abstraction {
@@ -58,9 +53,9 @@ err := container.Singleton(func() Abstraction {
 })
 ```
 
-It takes a function (resolver) whose return type is the abstraction and the function body returns the concrete (implementation).
+It takes a resolver (function) whose return type is the abstraction and the function body returns the concrete (implementation).
 
-Example for singleton binding:
+The example below shows a singleton binding.
 
 ```go
 err := container.Singleton(func() Database {
@@ -68,13 +63,8 @@ err := container.Singleton(func() Database {
 })
 ```
 
-In the example above, the container makes a MySQL instance once and returns it for all the requests.
-
 #### Transient
-
-Transient binding is also similar to singleton binding.
-
-Example for transient binding:
+The example below shows a transient binding.
 
 ```go
 err := container.Transient(func() Shape {
@@ -82,15 +72,12 @@ err := container.Transient(func() Shape {
 })
 ```
 
-In the example above, the container always returns a brand-new Rectangle instance for each request.
-
 ### Named Bindings
-
 You may have different concretes for an abstraction.
 In this case, you can use named bindings instead of typed bindings.
-Named bindings take a name into account as well.
+Named bindings take the dependency name into account as well.
 The rest is similar to typed bindings.
-The following examples demonstrate named bindings.
+The following examples demonstrate some named bindings.
 
 ```go
 // Singleton
@@ -105,18 +92,15 @@ err := container.NamedSingleton("rounded" func() Shape {
 err := container.NamedTransient("sql" func() Database {
     return &MySQL{}
 })
-
 err := container.NamedTransient("noSql" func() Database {
     return &MongoDB{}
 })
 ```
 
 ### Resolving
-
 Container resolves the dependencies with the `Resolve()`, `Call()`, and `Fill()` methods.
 
 #### Using References
-
 The `Resolve()` method takes reference of the abstraction type and fills it with the appropriate concrete.
 
 ```go
@@ -134,7 +118,7 @@ err := container.Resolve(&m)
 m.Send("contact@miladrahimi.com", "Hello Milad!")
 ```
 
-Example of named resolving using references:
+Example of named-resolving using references:
 
 ```go
 var s Shape
@@ -143,9 +127,8 @@ err := container.NamedResolve(&s, "rounded")
 ```
 
 #### Using Closures
-
-The `Call()` method takes a function (receiver) with arguments of abstractions you need.
-It will invoke it with parameters of appropriate concretes.
+The `Call()` method takes a receiver (function) with arguments of abstractions you need.
+It calls it with parameters of appropriate concretes.
 
 ```go
 err := container.Call(func(a Abstraction) {
@@ -171,13 +154,12 @@ err := container.Call(func(db Database, s Shape) {
 })
 ```
 
-Since Go reflection doesn't let us know function parameter names, the `Call()` method cannot resolve named concretes.
+Caution: The `Call()` method does not support named bindings.
 
 #### Using Structs
+The `Fill()` method takes a struct (pointer) and resolves its fields.
 
-The `Fill()` method takes a struct (pointer) with fields of abstractions you need and fills the fields.
-
-Example of resolving using Structs:
+The example below expresses how the `Fill()` method works.
 
 ```go
 type App struct {
@@ -190,6 +172,7 @@ type App struct {
 myApp := App{}
 
 err := container.Fill(&myApp)
+
 // [Typed Bindings]
 // `myApp.mailer` will be an implementation of the Mailer interface
 
@@ -200,13 +183,10 @@ err := container.Fill(&myApp)
 // `myApp.x` will be ignored since it has no `container` tag
 ```
 
-As for named bindings (struct fields with `container: "name"` tag), field names must be the same binding name.
-
 #### Binding time
+You can resolve dependencies at the binding time if you need previous dependencies for the new one.
 
-You can resolve dependencies at the binding time if you need previous bindings for the new one.
-
-Example of resolving in binding time:
+The following example shows resolving dependencies at binding time.
 
 ```go
 // Bind Config to JsonConfig
@@ -225,13 +205,11 @@ err := container.Singleton(func(c Config) Database {
 ```
 
 ### Standalone Instance
-
 By default, the Container keeps your bindings in the global instance.
 Sometimes you may want to create a standalone instance for a part of your application.
-If so, create a standalone instance like this example:
+If so, create a standalone instance like the example below.
 
 ```go
-// returns a container.Container (a Container instance)
 c := container.New()
 
 err := c.Singleton(func() Database {
@@ -247,7 +225,6 @@ The rest stays the same.
 The global container is still available.
 
 ### Usage Tips
-
 #### Performance
 The package Container inevitably uses reflection in binding and resolving processes. 
 If performance is a concern, try to bind and resolve the dependencies out of the processes that run many times (for example, HTTP handlers).
