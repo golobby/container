@@ -169,6 +169,10 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 	return errors.New("container: invalid abstraction")
 }
 
+func (c Container) fillStruct(structure interface{}) error {
+
+}
+
 // Fill takes a struct and resolves the fields with the tag `container:"inject"`
 func (c Container) Fill(structure interface{}) error {
 	receiverType := reflect.TypeOf(structure)
@@ -211,6 +215,40 @@ func (c Container) Fill(structure interface{}) error {
 			}
 
 			return nil
+		}
+
+		if elem.Kind() == reflect.Slice {
+			s := elem.Elem()
+
+			if _, exist := c[s]; exist {
+				result := reflect.MakeSlice(reflect.SliceOf(elem.Elem()), 0, len(c[s]))
+
+				for _, concrete := range c[s] {
+					instance, _ := concrete.resolve(c)
+
+					result = reflect.Append(result, reflect.ValueOf(instance))
+				}
+
+				reflect.ValueOf(structure).Elem().Set(result)
+			}
+
+			return nil
+		}
+
+		if elem.Kind() == reflect.Map && elem.Key().Name() == "string" {
+			s := elem.Elem()
+
+			if _, exist := c[s]; exist {
+				result := reflect.MakeMapWithSize(reflect.MapOf(elem.Key(), elem.Elem()), len(c[s]))
+
+				for name, concrete := range c[s] {
+					instance, _ := concrete.resolve(c)
+
+					result.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(instance))
+				}
+
+				reflect.ValueOf(structure).Elem().Set(result)
+			}
 		}
 	}
 
