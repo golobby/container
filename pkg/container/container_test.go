@@ -1,6 +1,7 @@
 package container_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,18 @@ func (c *Circle) SetArea(a int) {
 
 func (c Circle) GetArea() int {
 	return c.a
+}
+
+type Rectangle struct {
+	a int
+}
+
+func (s *Rectangle) SetArea(a int) {
+	s.a = a
+}
+
+func (s Rectangle) GetArea() int {
+	return s.a
 }
 
 type Database interface {
@@ -310,11 +323,70 @@ func TestContainer_Fill_With_Invalid_Field_Name_It_Should_Fail(t *testing.T) {
 func TestContainer_Fill_With_Invalid_Struct_It_Should_Fail(t *testing.T) {
 	invalidStruct := 0
 	err := instance.Fill(&invalidStruct)
-	assert.EqualError(t, err, "container: invalid structure")
+	assert.EqualError(t, err, "container: invalid receiver")
 }
 
 func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Fill(s)
-	assert.EqualError(t, err, "container: invalid structure")
+	assert.EqualError(t, err, "container: invalid receiver")
+}
+
+func TestContainer_Fill_With_Slice(t *testing.T) {
+	instance.Reset()
+
+	err := instance.NamedSingleton("circle", func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.NamedSingleton("square", func() Shape {
+		return &Rectangle{a: 11}
+	})
+	assert.NoError(t, err)
+
+	var shapes []Shape
+	err = instance.Fill(&shapes)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(shapes))
+
+	var list = map[string]struct{}{
+		reflect.TypeOf(shapes[0]).Elem().Name(): {},
+		reflect.TypeOf(shapes[1]).Elem().Name(): {},
+	}
+
+	_, ok := list["Circle"]
+	assert.True(t, ok)
+
+	_, ok = list["Rectangle"]
+	assert.True(t, ok)
+}
+
+func TestContainer_Fill_With_Map(t *testing.T) {
+	instance.Reset()
+
+	err := instance.NamedSingleton("circle", func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.NamedSingleton("square", func() Shape {
+		return &Rectangle{a: 11}
+	})
+	assert.NoError(t, err)
+
+	var shapes map[string]Shape
+	err = instance.Fill(&shapes)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(shapes))
+
+	_, ok := shapes["circle"]
+	assert.True(t, ok)
+	assert.IsType(t, &Circle{}, shapes["circle"])
+
+	_, ok = shapes["square"]
+	assert.True(t, ok)
+	assert.IsType(t, &Rectangle{}, shapes["square"])
 }
