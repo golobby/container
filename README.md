@@ -183,7 +183,7 @@ err := container.Fill(&myApp)
 // `myApp.x` will be ignored since it has no `container` tag
 ```
 
-Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementation of provided Type.
+Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementations of provided Type.
 
 ```go
 var list []Shape

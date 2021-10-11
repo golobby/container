@@ -170,7 +170,7 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 }
 
 // Fill takes a struct and resolves the fields with the tag `container:"inject"`.
-// Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementation of provided Type.
+// Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementations of provided Type.
 func (c Container) Fill(receiver interface{}) error {
 	receiverType := reflect.TypeOf(receiver)
 	if receiverType == nil {
