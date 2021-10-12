@@ -201,8 +201,8 @@ func (c Container) Fill(receiver interface{}) error {
 	return errors.New("container: invalid receiver")
 }
 
-func (c Container) fillStruct(structure interface{}) error {
-	s := reflect.ValueOf(structure).Elem()
+func (c Container) fillStruct(receiver interface{}) error {
+	s := reflect.ValueOf(receiver).Elem()
 
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
@@ -236,8 +236,8 @@ func (c Container) fillStruct(structure interface{}) error {
 	return nil
 }
 
-func (c Container) fillSlice(structure interface{}) error {
-	elem := reflect.TypeOf(structure).Elem()
+func (c Container) fillSlice(receiver interface{}) error {
+	elem := reflect.TypeOf(receiver).Elem()
 
 	if _, exist := c[elem.Elem()]; exist {
 		result := reflect.MakeSlice(reflect.SliceOf(elem.Elem()), 0, len(c[elem.Elem()]))
@@ -248,14 +248,14 @@ func (c Container) fillSlice(structure interface{}) error {
 			result = reflect.Append(result, reflect.ValueOf(instance))
 		}
 
-		reflect.ValueOf(structure).Elem().Set(result)
+		reflect.ValueOf(receiver).Elem().Set(result)
 	}
 
 	return nil
 }
 
-func (c Container) fillMap(structure interface{}) error {
-	elem := reflect.TypeOf(structure).Elem()
+func (c Container) fillMap(receiver interface{}) error {
+	elem := reflect.TypeOf(receiver).Elem()
 
 	if _, exist := c[elem.Elem()]; exist {
 		result := reflect.MakeMapWithSize(reflect.MapOf(elem.Key(), elem.Elem()), len(c[elem.Elem()]))
@@ -266,7 +266,7 @@ func (c Container) fillMap(structure interface{}) error {
 			result.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(instance))
 		}
 
-		reflect.ValueOf(structure).Elem().Set(result)
+		reflect.ValueOf(receiver).Elem().Set(result)
 	}
 
 	return nil
