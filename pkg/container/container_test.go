@@ -1,6 +1,7 @@
 package container_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,6 +126,14 @@ func TestContainer_NamedTransient(t *testing.T) {
 	err = instance.NamedResolve(&sh, "theCircle")
 	assert.NoError(t, err)
 	assert.Equal(t, sh.GetArea(), 13)
+}
+
+func TestContainer_Bind_error(t *testing.T) {
+	err := instance.Singleton(func() (Shape, error) {
+		return nil, errors.New("binding error")
+	})
+
+	assert.EqualError(t, err, "binding error")
 }
 
 func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {

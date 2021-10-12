@@ -67,7 +67,13 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	return reflect.ValueOf(function).Call(args)[0].Interface(), nil
+	out := reflect.ValueOf(function).Call(args)
+	// if there is more than one returned values and the last one is error and it's not nil then return it
+	if len(out) > 1 && out[len(out)-1].Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) && !out[len(out)-1].IsNil() {
+		return nil, out[len(out)-1].Interface().(error)
+	}
+
+	return out[0].Interface(), nil
 }
 
 // arguments returns container-resolved arguments of a function.
