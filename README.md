@@ -183,20 +183,6 @@ err := container.Fill(&myApp)
 // `myApp.x` will be ignored since it has no `container` tag
 ```
 
-Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementations of provided Type.
-
-```go
-var list []Shape
-container.Fill(&list)
-
-// []Shape{&Rectangle{}, &Circle{}}
-
-var list map[string]Shape
-container.Fill(&list)
-
-// map[string]Shape{"square": &Rectangle{}, "rounded": &Circle{}} 
-```
-
 #### Binding time
 You can resolve dependencies at the binding time if you need previous dependencies for the new one.
 
