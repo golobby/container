@@ -202,50 +202,105 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 	return errors.New("container: invalid abstraction")
 }
 
-// Fill takes a struct and resolves the fields with the tag `container:"inject"`
-func (c Container) Fill(structure interface{}) error {
-	receiverType := reflect.TypeOf(structure)
+// Fill takes a struct and resolves the fields with the tag `container:"inject"`.
+// Alternatively map[string]Type or []Type can be provided. It will be filled with all available implementations of provided Type.
+func (c Container) Fill(receiver interface{}) error {
+	receiverType := reflect.TypeOf(receiver)
 	if receiverType == nil {
-		return errors.New("container: invalid structure")
+		return errors.New("container: invalid receiver")
 	}
 
-	if receiverType.Kind() == reflect.Ptr {
-		elem := receiverType.Elem()
-		if elem.Kind() == reflect.Struct {
-			s := reflect.ValueOf(structure).Elem()
+	if receiverType.Kind() != reflect.Ptr {
+		return errors.New("container: receiver is not a pointer")
+	}
 
-			for i := 0; i < s.NumField(); i++ {
-				f := s.Field(i)
+	elem := receiverType.Elem()
 
-				if t, exist := s.Type().Field(i).Tag.Lookup("container"); exist {
-					var name string
+	switch receiverType.Elem().Kind() {
+	case reflect.Struct:
+		return c.fillStruct(receiver)
 
-					if t == "type" {
-						name = ""
-					} else if t == "name" {
-						name = s.Type().Field(i).Name
-					} else {
-						return errors.New(
-							fmt.Sprintf("container: %v has an invalid struct tag", s.Type().Field(i).Name),
-						)
-					}
+	case reflect.Slice:
+		return c.fillSlice(receiver)
 
-					if concrete, exist := c[f.Type()][name]; exist {
-						instance, _ := concrete.resolve(c)
+	case reflect.Map:
+		if elem.Key().Name() != "string" {
+			break
+		}
 
-						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
-						ptr.Set(reflect.ValueOf(instance))
+		return c.fillMap(receiver)
+	}
 
-						continue
-					}
+	return errors.New("container: invalid receiver")
+}
 
-					return errors.New(fmt.Sprintf("container: cannot resolve %v field", s.Type().Field(i).Name))
-				}
+func (c Container) fillStruct(receiver interface{}) error {
+	s := reflect.ValueOf(receiver).Elem()
+
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+
+		if t, exist := s.Type().Field(i).Tag.Lookup("container"); exist {
+			var name string
+
+			if t == "type" {
+				name = ""
+			} else if t == "name" {
+				name = s.Type().Field(i).Name
+			} else {
+				return errors.New(
+					fmt.Sprintf("container: %v has an invalid struct tag", s.Type().Field(i).Name),
+				)
 			}
 
-			return nil
+			if concrete, exist := c[f.Type()][name]; exist {
+				instance, _ := concrete.resolve(c)
+
+				ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+				ptr.Set(reflect.ValueOf(instance))
+
+				continue
+			}
+
+			return errors.New(fmt.Sprintf("container: cannot resolve %v field", s.Type().Field(i).Name))
 		}
 	}
 
-	return errors.New("container: invalid structure")
+	return nil
+}
+
+func (c Container) fillSlice(receiver interface{}) error {
+	elem := reflect.TypeOf(receiver).Elem()
+
+	if _, exist := c[elem.Elem()]; exist {
+		result := reflect.MakeSlice(reflect.SliceOf(elem.Elem()), 0, len(c[elem.Elem()]))
+
+		for _, concrete := range c[elem.Elem()] {
+			instance, _ := concrete.resolve(c)
+
+			result = reflect.Append(result, reflect.ValueOf(instance))
+		}
+
+		reflect.ValueOf(receiver).Elem().Set(result)
+	}
+
+	return nil
+}
+
+func (c Container) fillMap(receiver interface{}) error {
+	elem := reflect.TypeOf(receiver).Elem()
+
+	if _, exist := c[elem.Elem()]; exist {
+		result := reflect.MakeMapWithSize(reflect.MapOf(elem.Key(), elem.Elem()), len(c[elem.Elem()]))
+
+		for name, concrete := range c[elem.Elem()] {
+			instance, _ := concrete.resolve(c)
+
+			result.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(instance))
+		}
+
+		reflect.ValueOf(receiver).Elem().Set(result)
+	}
+
+	return nil
 }
