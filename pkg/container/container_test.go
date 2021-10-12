@@ -282,6 +282,16 @@ func TestContainer_Fill_Unexported_With_Struct_Pointer(t *testing.T) {
 	assert.IsType(t, &MySQL{}, myApp.d)
 }
 
+func TestContainer_Fill_Without_Pointer(t *testing.T) {
+	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	var db MySQL
+	assert.EqualError(t, instance.Fill(db), "container: receiver is not a pointer")
+}
+
 func TestContainer_Fill_With_Invalid_Field_It_Should_Fail(t *testing.T) {
 	err := instance.NamedSingleton("C", func() Shape {
 		return &Circle{a: 5}
@@ -330,6 +340,16 @@ func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Fill(s)
 	assert.EqualError(t, err, "container: invalid receiver")
+}
+
+func TestContainer_Fill_Invalid_Map(t *testing.T) {
+	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	var list = map[int]Shape{}
+	assert.EqualError(t, instance.Fill(&list), "container: invalid receiver")
 }
 
 func TestContainer_Fill_With_Slice(t *testing.T) {
