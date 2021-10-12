@@ -26,6 +26,18 @@ func (c Circle) GetArea() int {
 	return c.a
 }
 
+type Rectangle struct {
+	a int
+}
+
+func (s *Rectangle) SetArea(a int) {
+	s.a = a
+}
+
+func (s Rectangle) GetArea() int {
+	return s.a
+}
+
 type Database interface {
 	Connect() bool
 }
