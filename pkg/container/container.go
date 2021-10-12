@@ -68,9 +68,10 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 	}
 
 	out := reflect.ValueOf(function).Call(args)
-	// if there is more than one returned values and the last one is error and it's not nil then return it
-	if len(out) > 1 && out[len(out)-1].Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) && !out[len(out)-1].IsNil() {
-		return nil, out[len(out)-1].Interface().(error)
+	last := out[len(out)-1]
+	// if there is more than one returned value and the last one is error and it's not nil then return it
+	if len(out) > 1 && last.Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) && !last.IsNil() {
+		return nil, last.Interface().(error)
 	}
 
 	return out[0].Interface(), nil
