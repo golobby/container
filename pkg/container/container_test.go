@@ -59,6 +59,31 @@ func TestContainer_Singleton(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_Singleton_Multi(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Singleton(func() (Shape, Database, error) {
+		return &Rectangle{a: 777}, &MySQL{}, nil
+	})
+	assert.NoError(t, err)
+
+	var s Shape
+	assert.NoError(t, instance.Resolve(&s))
+	if _, ok := s.(*Rectangle); !ok {
+		t.Error("Expected Rectangle")
+	}
+
+	assert.Equal(t, 777, s.GetArea())
+
+	var db Database
+	assert.NoError(t, instance.Resolve(&db))
+	if _, ok := db.(*MySQL); !ok {
+		t.Error("Expected MySQL")
+	}
+
+	assert.EqualError(t, instance.Resolve(&err), "container: no concrete found for: error")
+}
+
 func TestContainer_Singleton_With_NonFunction_Resolver_It_Should_Fail(t *testing.T) {
 	err := instance.Singleton("STRING!")
 	assert.EqualError(t, err, "container: the resolver must be a function")
@@ -128,6 +153,25 @@ func TestContainer_NamedTransient(t *testing.T) {
 	assert.Equal(t, sh.GetArea(), 13)
 }
 
+func TestContainer_Transient_Multi_Error(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Transient(func() (Circle, Rectangle, Database) {
+		return Circle{a: 666}, Rectangle{a: 666}, &MySQL{}
+	})
+	assert.EqualError(t, err, "container: transient value resolvers must return exactly one value and optionally one error")
+
+	err = instance.Transient(func() (Shape, Database) {
+		return &Circle{a: 666}, &MySQL{}
+	})
+	assert.EqualError(t, err, "container: transient value resolvers must return exactly one value and optionally one error")
+
+	err = instance.Transient(func() error {
+		return errors.New("dummy error")
+	})
+	assert.EqualError(t, err, "container: transient value resolvers must return exactly one value and optionally one error")
+}
+
 func TestContainer_Bind_error(t *testing.T) {
 	err := instance.Singleton(func() (Shape, error) {
 		return nil, errors.New("binding error")
@@ -176,6 +220,18 @@ func TestContainer_Call_With_Second_UnBounded_Argument(t *testing.T) {
 	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
 }
 
+func TestContainer_Call_With_Returned_Error(t *testing.T) {
+	err := instance.Singleton(func() Shape {
+		return &Circle{}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s Shape) (err error) {
+		return errors.New("dummy error")
+	})
+	assert.EqualError(t, err, "dummy error")
+}
+
 func TestContainer_Resolve_With_Reference_As_Resolver(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 5}
@@ -222,6 +278,19 @@ func TestContainer_Resolve_With_UnBounded_Reference_It_Should_Fail(t *testing.T)
 	var s Shape
 	err := instance.Resolve(&s)
 	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
+}
+
+func TestContainer_Resolve_Invoke_Error(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Transient(func() (Shape, error) {
+		return nil, errors.New("dummy error")
+	})
+	assert.NoError(t, err)
+
+	var s Shape
+	err = instance.Resolve(&s)
+	assert.EqualError(t, err, "dummy error")
 }
 
 func TestContainer_Fill_With_Struct_Pointer(t *testing.T) {

@@ -21,7 +21,12 @@ func (b binding) resolve(c Container) (interface{}, error) {
 		return b.instance, nil
 	}
 
-	return c.invoke(b.resolver)
+	out, err := c.invoke(b.resolver)
+	if err != nil {
+		return nil, err
+	}
+
+	return out[0].Interface(), nil
 }
 
 // Container holds all of the declared bindings
@@ -33,24 +38,37 @@ func New() Container {
 }
 
 // bind maps an abstraction to a concrete and sets an instance if it's a singleton binding.
-func (c Container) bind(resolver interface{}, name string, singleton bool) error {
+func (c Container) bind(resolver interface{}, name string, singleton bool) (err error) {
 	reflectedResolver := reflect.TypeOf(resolver)
 	if reflectedResolver.Kind() != reflect.Func {
 		return errors.New("container: the resolver must be a function")
 	}
 
+	var instances []reflect.Value
+	switch {
+	case singleton:
+		if instances, err = c.invoke(resolver); err != nil {
+			return
+		}
+
+	case !singleton && reflectedResolver.NumOut() > 2,
+		!singleton && reflectedResolver.NumOut() == 2 && !c.isError(reflectedResolver.Out(1)),
+		!singleton && reflectedResolver.NumOut() == 1 && c.isError(reflectedResolver.Out(0)):
+		return errors.New("container: transient value resolvers must return exactly one value and optionally one error")
+	}
+
 	for i := 0; i < reflectedResolver.NumOut(); i++ {
+		// we are not interested in returned errors
+		if c.isError(reflectedResolver.Out(i)) {
+			continue
+		}
+
 		if _, exist := c[reflectedResolver.Out(i)]; !exist {
 			c[reflectedResolver.Out(i)] = make(map[string]binding)
 		}
 
 		if singleton {
-			instance, err := c.invoke(resolver)
-			if err != nil {
-				return err
-			}
-
-			c[reflectedResolver.Out(i)][name] = binding{resolver: resolver, instance: instance}
+			c[reflectedResolver.Out(i)][name] = binding{resolver: resolver, instance: instances[i].Interface()}
 		} else {
 			c[reflectedResolver.Out(i)][name] = binding{resolver: resolver}
 		}
@@ -60,21 +78,23 @@ func (c Container) bind(resolver interface{}, name string, singleton bool) error
 }
 
 // invoke calls a function and returns the yielded value.
-// It only works for functions that return a single value.
-func (c Container) invoke(function interface{}) (interface{}, error) {
+func (c Container) invoke(function interface{}) ([]reflect.Value, error) {
 	args, err := c.arguments(function)
 	if err != nil {
 		return nil, err
 	}
 
 	out := reflect.ValueOf(function).Call(args)
-	last := out[len(out)-1]
 	// if there is more than one returned value and the last one is error and it's not nil then return it
-	if len(out) > 1 && last.Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) && !last.IsNil() {
-		return nil, last.Interface().(error)
+	if len(out) > 1 && c.isError(out[len(out)-1].Type()) && !out[len(out)-1].IsNil() {
+		return nil, out[len(out)-1].Interface().(error)
 	}
 
-	return out[0].Interface(), nil
+	return out, nil
+}
+
+func (c Container) isError(v reflect.Type) bool {
+	return v.Implements(reflect.TypeOf((*error)(nil)).Elem())
 }
 
 // arguments returns container-resolved arguments of a function.
@@ -137,12 +157,16 @@ func (c Container) Call(function interface{}) error {
 		return errors.New("container: invalid function")
 	}
 
-	arguments, err := c.arguments(function)
+	args, err := c.arguments(function)
 	if err != nil {
 		return err
 	}
 
-	reflect.ValueOf(function).Call(arguments)
+	out := reflect.ValueOf(function).Call(args)
+	// if there is something returned from a function and the last value is error and it's not nil then return it
+	if len(out) > 0 && out[len(out)-1].Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) && !out[len(out)-1].IsNil() {
+		return out[len(out)-1].Interface().(error)
+	}
 
 	return nil
 }
@@ -163,9 +187,11 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 		elem := receiverType.Elem()
 
 		if concrete, exist := c[elem][name]; exist {
-			instance, _ := concrete.resolve(c)
-
-			reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
+			if instance, err := concrete.resolve(c); err != nil {
+				return err
+			} else {
+				reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
+			}
 
 			return nil
 		}
