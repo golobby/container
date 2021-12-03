@@ -97,10 +97,10 @@ err := container.NamedTransient("noSql" func() Database {
 })
 ```
 
-### Bind Errors
+### Resolver Errors
 
 The process of creating concrete (resolving) might face an error.
-The resolver function can also return an like the following example.
+In this case, you can return the error as the second return value like the example below.
 
 ```go
 err := container.Transient(func() (Shape, error) {
