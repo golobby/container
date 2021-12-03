@@ -67,7 +67,14 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	return reflect.ValueOf(function).Call(args)[0].Interface(), nil
+	if reflect.TypeOf(function).NumOut() == 1 {
+		return reflect.ValueOf(function).Call(args)[0].Interface(), nil
+	} else if reflect.TypeOf(function).NumOut() == 2 {
+		values := reflect.ValueOf(function).Call(args)
+		return values[0].Interface(), values[1].Interface().(error)
+	}
+
+	return nil, errors.New("container: resolver function signature is invalid")
 }
 
 // arguments returns container-resolved arguments of a function.
@@ -156,11 +163,12 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 		elem := receiverType.Elem()
 
 		if concrete, exist := c[elem][name]; exist {
-			instance, _ := concrete.resolve(c)
-
-			reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
-
-			return nil
+			if instance, err := concrete.resolve(c); err == nil {
+				reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
+				return nil
+			} else {
+				return err
+			}
 		}
 
 		return errors.New("container: no concrete found for: " + elem.String())
