@@ -1,6 +1,7 @@
 package container_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -113,6 +114,17 @@ func TestContainer_Transient(t *testing.T) {
 		assert.Equal(t, a, 666)
 	})
 	assert.NoError(t, err)
+}
+
+func TestContainer_Transient_With_Resolve_That_Returns_Error(t *testing.T) {
+	err := instance.Transient(func() (Shape, error) {
+		return nil, errors.New("app: error")
+	})
+	assert.NoError(t, err)
+
+	var s Shape
+	err = instance.Resolve(&s)
+	assert.Error(t, err, "app: error")
 }
 
 func TestContainer_NamedTransient(t *testing.T) {
