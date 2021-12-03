@@ -15,8 +15,7 @@ jobs:
             - ubuntu-latest
           go:
             - 1.17
-            - 1.16
-            
+
     runs-on: ${{ matrix.os }}
     
     steps:
