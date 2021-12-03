@@ -97,6 +97,19 @@ err := container.NamedTransient("noSql" func() Database {
 })
 ```
 
+### Bind Errors
+
+The process of creating concrete (resolving) might face an error.
+The resolver function can also return an like the following example.
+
+```go
+err := container.Transient(func() (Shape, error) {
+  return nil, errors.New("my-app: cannot create a Shaple implementation")
+})
+```
+
+It could be applied to other binding types.
+
 ### Resolving
 Container resolves the dependencies with the `Resolve()`, `Call()`, and `Fill()` methods.
 
