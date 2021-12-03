@@ -165,6 +165,7 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 		if concrete, exist := c[elem][name]; exist {
 			if instance, err := concrete.resolve(c); err == nil {
 				reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
+				return nil
 			} else {
 				return err
 			}
