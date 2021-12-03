@@ -237,7 +237,7 @@ err := c.Call(func(db Database) {
 The rest stays the same.
 The global container is still available.
 
-### Usage Tips
+### Tips
 #### Performance
 The package Container inevitably uses reflection in binding and resolving processes. 
 If performance is a concern, try to bind and resolve the dependencies out of the processes that run many times (for example, HTTP handlers).
