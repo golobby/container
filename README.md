@@ -39,7 +39,7 @@ err := container.Singleton(func() Config {
 })
 
 var c Config
-err := container.Bind(&c)
+err := container.Resolve(&c)
 // `c` will be the instance of JsonConfig
 ```
 
