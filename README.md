@@ -51,6 +51,12 @@ The following snippet expresses singleton binding.
 err := container.Singleton(func() Abstraction {
   return Implementation
 })
+
+// If you might return an error...
+
+err := container.Singleton(func() (Abstraction, error) {
+  return Implementation, nil
+})
 ```
 
 It takes a resolver (function) whose return type is the abstraction and the function body returns the concrete (implementation).
