@@ -71,7 +71,13 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 		return reflect.ValueOf(function).Call(args)[0].Interface(), nil
 	} else if reflect.TypeOf(function).NumOut() == 2 {
 		values := reflect.ValueOf(function).Call(args)
-		return values[0].Interface(), values[1].Interface().(error)
+
+		var e error
+		if values[1].Interface() != nil {
+			e = values[1].Interface().(error)
+		}
+
+		return values[0].Interface(), e
 	}
 
 	return nil, errors.New("container: resolver function signature is invalid")
