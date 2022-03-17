@@ -4,9 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/golobby/container/v3"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/golobby/container/v3/pkg/container"
 )
 
 type Shape interface {
