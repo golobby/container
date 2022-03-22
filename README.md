@@ -88,7 +88,7 @@ The following examples demonstrate some named bindings.
 ```go
 // Singleton
 err := container.NamedSingleton("square" func() Shape {
-  return &Rectangle{}
+    return &Rectangle{}
 })
 err := container.NamedSingleton("rounded" func() Shape {
     return &Circle{}
