@@ -37,6 +37,53 @@ func (m MySQL) Connect() bool {
 
 var instance = container.New()
 
+func TestContainer_With_The_Global_Instance(t *testing.T) {
+	err := container.Singleton(func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	err = container.Call(func(s Shape) {})
+	assert.NoError(t, err)
+
+	var sh Shape
+	err = container.Resolve(&sh)
+	assert.NoError(t, err)
+
+	err = container.Transient(func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	err = container.Resolve(&sh)
+	assert.NoError(t, err)
+
+	err = container.NamedSingleton("theCircle", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	err = container.NamedResolve(&sh, "theCircle")
+	assert.NoError(t, err)
+
+	err = container.NamedTransient("theCircle", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	err = container.NamedResolve(&sh, "theCircle")
+	assert.NoError(t, err)
+
+	myApp := struct {
+		S Shape `container:"type"`
+	}{}
+
+	err = container.Fill(&myApp)
+	assert.NoError(t, err)
+
+	container.Reset()
+}
+
 func TestContainer_Singleton(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 13}

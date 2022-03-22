@@ -9,7 +9,7 @@ import (
 	"unsafe"
 )
 
-// container is the global repository of bindings
+// container is the global instance.
 var container = New()
 
 // Singleton binds an abstraction to concrete for further singleton resolves.
@@ -77,7 +77,7 @@ func (b binding) resolve(c Container) (interface{}, error) {
 	return c.invoke(b.resolver)
 }
 
-// Container holds all of the declared bindings
+// Container holds the declared bindings
 type Container map[reflect.Type]map[string]binding
 
 // New creates a new instance of the Container
