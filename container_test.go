@@ -51,7 +51,7 @@ func TestContainer_With_The_Global_Instance(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = container.Transient(func() Shape {
-		return &Circle{a: 13}
+		return &Circle{a: 33}
 	})
 	assert.NoError(t, err)
 
@@ -59,7 +59,7 @@ func TestContainer_With_The_Global_Instance(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = container.NamedSingleton("theCircle", func() Shape {
-		return &Circle{a: 13}
+		return &Circle{a: 33}
 	})
 	assert.NoError(t, err)
 
@@ -67,7 +67,7 @@ func TestContainer_With_The_Global_Instance(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = container.NamedTransient("theCircle", func() Shape {
-		return &Circle{a: 13}
+		return &Circle{a: 66}
 	})
 	assert.NoError(t, err)
 
