@@ -105,6 +105,13 @@ func TestContainer_Singleton(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_Singleton_With_Resolve_That_Returns_Error(t *testing.T) {
+	err := instance.Singleton(func() (Shape, error) {
+		return nil, errors.New("app: error")
+	})
+	assert.Error(t, err, "app: error")
+}
+
 func TestContainer_Singleton_With_NonFunction_Resolver_It_Should_Fail(t *testing.T) {
 	err := instance.Singleton("STRING!")
 	assert.EqualError(t, err, "container: the resolver must be a function")
@@ -166,10 +173,6 @@ func TestContainer_Transient_With_Resolve_That_Returns_Error(t *testing.T) {
 	err := instance.Transient(func() (Shape, error) {
 		return nil, errors.New("app: error")
 	})
-	assert.NoError(t, err)
-
-	var s Shape
-	err = instance.Resolve(&s)
 	assert.Error(t, err, "app: error")
 }
 
@@ -177,10 +180,6 @@ func TestContainer_Transient_With_Resolve_With_Invalid_Signature_It_Should_Fail(
 	err := instance.Transient(func() (Shape, Database, error) {
 		return nil, nil, nil
 	})
-	assert.NoError(t, err)
-
-	var s Shape
-	err = instance.Resolve(&s)
 	assert.Error(t, err, "container: resolver function signature is invalid")
 }
 

@@ -92,20 +92,20 @@ func (c Container) bind(resolver interface{}, name string, singleton bool) error
 		return errors.New("container: the resolver must be a function")
 	}
 
-	for i := 0; i < reflectedResolver.NumOut(); i++ {
-		if _, exist := c[reflectedResolver.Out(i)]; !exist {
-			c[reflectedResolver.Out(i)] = make(map[string]binding)
+	if reflectedResolver.NumOut() > 0 {
+		if _, exist := c[reflectedResolver.Out(0)]; !exist {
+			c[reflectedResolver.Out(0)] = make(map[string]binding)
+		}
+
+		instance, err := c.invoke(resolver)
+		if err != nil {
+			return err
 		}
 
 		if singleton {
-			instance, err := c.invoke(resolver)
-			if err != nil {
-				return err
-			}
-
-			c[reflectedResolver.Out(i)][name] = binding{resolver: resolver, instance: instance}
+			c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, instance: instance}
 		} else {
-			c[reflectedResolver.Out(i)][name] = binding{resolver: resolver}
+			c[reflectedResolver.Out(0)][name] = binding{resolver: resolver}
 		}
 	}
 
