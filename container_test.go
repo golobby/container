@@ -174,6 +174,20 @@ func TestContainer_Transient_With_Resolve_That_Returns_Error(t *testing.T) {
 		return nil, errors.New("app: error")
 	})
 	assert.Error(t, err, "app: error")
+
+	globalFlag := true
+	err = instance.Transient(func() (Database, error) {
+		if globalFlag {
+			globalFlag = false
+			return &MySQL{}, nil
+		}
+		return nil, errors.New("app: second call error")
+	})
+	assert.NoError(t, err)
+
+	var db Database
+	err = instance.Resolve(&db)
+	assert.Error(t, err, "app: second call error")
 }
 
 func TestContainer_Transient_With_Resolve_With_Invalid_Signature_It_Should_Fail(t *testing.T) {
