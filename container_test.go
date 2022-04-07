@@ -175,10 +175,10 @@ func TestContainer_Transient_With_Resolve_That_Returns_Error(t *testing.T) {
 	})
 	assert.Error(t, err, "app: error")
 
-	globalFlag := true
+	firstCall := true
 	err = instance.Transient(func() (Database, error) {
-		if globalFlag {
-			globalFlag = false
+		if firstCall {
+			firstCall = false
 			return &MySQL{}, nil
 		}
 		return nil, errors.New("app: second call error")
