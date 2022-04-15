@@ -80,7 +80,7 @@ func TestMustFill_It_Should_Panic_On_Error(t *testing.T) {
 	c := container.New()
 
 	myApp := struct {
-		S Shape `Global:"type"`
+		S Shape `container:"type"`
 	}{}
 
 	defer func() { recover() }()

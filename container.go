@@ -1,5 +1,5 @@
-// Package container is a lightweight yet powerful IoC Global for Go projects.
-// It provides an easy-to-use interface and performance-in-mind Global to be your ultimate requirement.
+// Package container is a lightweight yet powerful IoC container for Go projects.
+// It provides an easy-to-use interface and performance-in-mind container to be your ultimate requirement.
 package container
 
 import (
@@ -82,7 +82,7 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 	return nil, errors.New("container: resolver function signature is invalid")
 }
 
-// arguments returns Global-resolved arguments of a function.
+// arguments returns container-resolved arguments of a function.
 func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 	reflectedFunction := reflect.TypeOf(function)
 	argumentsCount := reflectedFunction.NumIn()
@@ -125,7 +125,7 @@ func (c Container) NamedTransient(name string, resolver interface{}) error {
 	return c.bind(resolver, name, false)
 }
 
-// Reset deletes all the existing bindings and empties the Global instance.
+// Reset deletes all the existing bindings and empties the container instance.
 func (c Container) Reset() {
 	for k := range c {
 		delete(c, k)
@@ -188,7 +188,7 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 	return errors.New("container: invalid abstraction")
 }
 
-// Fill takes a struct and resolves the fields with the tag `Global:"inject"`
+// Fill takes a struct and resolves the fields with the tag `container:"inject"`
 func (c Container) Fill(structure interface{}) error {
 	receiverType := reflect.TypeOf(structure)
 	if receiverType == nil {
@@ -203,7 +203,7 @@ func (c Container) Fill(structure interface{}) error {
 			for i := 0; i < s.NumField(); i++ {
 				f := s.Field(i)
 
-				if t, exist := s.Type().Field(i).Tag.Lookup("Global"); exist {
+				if t, exist := s.Type().Field(i).Tag.Lookup("container"); exist {
 					var name string
 
 					if t == "type" {
