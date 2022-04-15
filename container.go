@@ -1,5 +1,5 @@
-// Package container is a lightweight yet powerful IoC container for Go projects.
-// It provides an easy-to-use interface and performance-in-mind container to be your ultimate requirement.
+// Package Global is a lightweight yet powerful IoC Global for Go projects.
+// It provides an easy-to-use interface and performance-in-mind Global to be your ultimate requirement.
 package container
 
 import (
@@ -9,34 +9,35 @@ import (
 	"unsafe"
 )
 
-// binding holds a binding resolver and an instance (for singleton bindings).
+// binding holds a resolver and an instance (if singleton).
+// It is the break for the Container wall!
 type binding struct {
-	resolver interface{} // resolver function that creates the appropriate implementation of the related abstraction
-	instance interface{} // instance stored for reusing in singleton bindings
+	resolver interface{} // resolver is the function that is responsible for making the instance.
+	instance interface{} // instance is the stored instance for singleton bindings.
 }
 
-// resolve creates an appropriate implementation of the related abstraction
-func (b binding) resolve(c Container) (interface{}, error) {
+// make resolves the binding if needed and returns the resolved instance.
+func (b binding) make(c Container) (interface{}, error) {
 	if b.instance != nil {
 		return b.instance, nil
 	}
-
 	return c.invoke(b.resolver)
 }
 
-// Container holds the declared bindings
+// Container holds the bindings and provides methods to interact with them.
+// It is the entry point in the package.
 type Container map[reflect.Type]map[string]binding
 
-// New creates a new instance of the Container
+// New creates a new instance of the Container.
 func New() Container {
 	return make(Container)
 }
 
-// bind maps an abstraction to a concrete and sets an instance if it's a singleton binding.
-func (c Container) bind(resolver interface{}, name string, singleton bool) error {
+// bind maps an abstraction to implementation and instantiates if it is a singleton binding.
+func (c Container) bind(resolver interface{}, name string, isSingleton bool) error {
 	reflectedResolver := reflect.TypeOf(resolver)
 	if reflectedResolver.Kind() != reflect.Func {
-		return errors.New("container: the resolver must be a function")
+		return errors.New("Global: the resolver must be a function")
 	}
 
 	if reflectedResolver.NumOut() > 0 {
@@ -50,7 +51,7 @@ func (c Container) bind(resolver interface{}, name string, singleton bool) error
 		return err
 	}
 
-	if singleton {
+	if isSingleton {
 		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, instance: instance}
 	} else {
 		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver}
@@ -59,33 +60,29 @@ func (c Container) bind(resolver interface{}, name string, singleton bool) error
 	return nil
 }
 
-// invoke calls a function and returns the yielded value.
-// It only works for functions that return a single value.
+// invoke calls a function and its returned values.
+// It only accepts one value and an optional error.
 func (c Container) invoke(function interface{}) (interface{}, error) {
-	args, err := c.arguments(function)
+	arguments, err := c.arguments(function)
 	if err != nil {
 		return nil, err
 	}
 
-	if reflect.TypeOf(function).NumOut() == 1 {
-		return reflect.ValueOf(function).Call(args)[0].Interface(), nil
-	} else if reflect.TypeOf(function).NumOut() == 2 {
-		values := reflect.ValueOf(function).Call(args)
+	values := reflect.ValueOf(function).Call(arguments)
 
-		var e error
-		if values[1].CanInterface() {
+	if len(values) == 1 || len(values) == 2 {
+		if len(values) == 2 && values[1].CanInterface() {
 			if err, ok := values[1].Interface().(error); ok {
-				return nil, err
+				return values[0].Interface(), err
 			}
 		}
-
-		return values[0].Interface(), e
+		return values[0].Interface(), nil
 	}
 
-	return nil, errors.New("container: resolver function signature is invalid")
+	return nil, errors.New("Global: resolver function signature is invalid")
 }
 
-// arguments returns container-resolved arguments of a function.
+// arguments returns Global-resolved arguments of a function.
 func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 	reflectedFunction := reflect.TypeOf(function)
 	argumentsCount := reflectedFunction.NumIn()
@@ -93,12 +90,11 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := reflectedFunction.In(i)
-
 		if concrete, exist := c[abstraction][""]; exist {
-			instance, _ := concrete.resolve(c)
+			instance, _ := concrete.make(c)
 			arguments[i] = reflect.ValueOf(instance)
 		} else {
-			return nil, errors.New("container: no concrete found for " + abstraction.String())
+			return nil, errors.New("Global: no concrete found for " + abstraction.String())
 		}
 	}
 
@@ -129,7 +125,7 @@ func (c Container) NamedTransient(name string, resolver interface{}) error {
 	return c.bind(resolver, name, false)
 }
 
-// Reset deletes all the existing bindings and empties the container instance.
+// Reset deletes all the existing bindings and empties the Global instance.
 func (c Container) Reset() {
 	for k := range c {
 		delete(c, k)
@@ -141,7 +137,7 @@ func (c Container) Reset() {
 func (c Container) Call(function interface{}) error {
 	receiverType := reflect.TypeOf(function)
 	if receiverType == nil || receiverType.Kind() != reflect.Func {
-		return errors.New("container: invalid function")
+		return errors.New("Global: invalid function")
 	}
 
 	arguments, err := c.arguments(function)
@@ -159,7 +155,7 @@ func (c Container) Call(function interface{}) error {
 		}
 	}
 
-	return errors.New("container: receiver function signature is invalid")
+	return errors.New("Global: receiver function signature is invalid")
 }
 
 // Resolve takes an abstraction (interface reference) and fills it with the related implementation.
@@ -171,14 +167,14 @@ func (c Container) Resolve(abstraction interface{}) error {
 func (c Container) NamedResolve(abstraction interface{}, name string) error {
 	receiverType := reflect.TypeOf(abstraction)
 	if receiverType == nil {
-		return errors.New("container: invalid abstraction")
+		return errors.New("Global: invalid abstraction")
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
 		elem := receiverType.Elem()
 
 		if concrete, exist := c[elem][name]; exist {
-			if instance, err := concrete.resolve(c); err == nil {
+			if instance, err := concrete.make(c); err == nil {
 				reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
 				return nil
 			} else {
@@ -186,17 +182,17 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 			}
 		}
 
-		return errors.New("container: no concrete found for: " + elem.String())
+		return errors.New("Global: no concrete found for: " + elem.String())
 	}
 
-	return errors.New("container: invalid abstraction")
+	return errors.New("Global: invalid abstraction")
 }
 
-// Fill takes a struct and resolves the fields with the tag `container:"inject"`
+// Fill takes a struct and resolves the fields with the tag `Global:"inject"`
 func (c Container) Fill(structure interface{}) error {
 	receiverType := reflect.TypeOf(structure)
 	if receiverType == nil {
-		return errors.New("container: invalid structure")
+		return errors.New("Global: invalid structure")
 	}
 
 	if receiverType.Kind() == reflect.Ptr {
@@ -207,7 +203,7 @@ func (c Container) Fill(structure interface{}) error {
 			for i := 0; i < s.NumField(); i++ {
 				f := s.Field(i)
 
-				if t, exist := s.Type().Field(i).Tag.Lookup("container"); exist {
+				if t, exist := s.Type().Field(i).Tag.Lookup("Global"); exist {
 					var name string
 
 					if t == "type" {
@@ -216,12 +212,12 @@ func (c Container) Fill(structure interface{}) error {
 						name = s.Type().Field(i).Name
 					} else {
 						return errors.New(
-							fmt.Sprintf("container: %v has an invalid struct tag", s.Type().Field(i).Name),
+							fmt.Sprintf("Global: %v has an invalid struct tag", s.Type().Field(i).Name),
 						)
 					}
 
 					if concrete, exist := c[f.Type()][name]; exist {
-						instance, _ := concrete.resolve(c)
+						instance, _ := concrete.make(c)
 
 						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 						ptr.Set(reflect.ValueOf(instance))
@@ -229,7 +225,7 @@ func (c Container) Fill(structure interface{}) error {
 						continue
 					}
 
-					return errors.New(fmt.Sprintf("container: cannot resolve %v field", s.Type().Field(i).Name))
+					return errors.New(fmt.Sprintf("Global: cannot make %v field", s.Type().Field(i).Name))
 				}
 			}
 
@@ -237,5 +233,5 @@ func (c Container) Fill(structure interface{}) error {
 		}
 	}
 
-	return errors.New("container: invalid structure")
+	return errors.New("Global: invalid structure")
 }

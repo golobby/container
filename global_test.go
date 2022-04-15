@@ -86,7 +86,7 @@ func TestFill(t *testing.T) {
 	assert.NoError(t, err)
 
 	myApp := struct {
-		s Shape `container:"type"`
+		s Shape `Global:"type"`
 	}{}
 
 	err = container.Fill(&myApp)

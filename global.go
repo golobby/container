@@ -1,54 +1,49 @@
 package container
 
-// container is the global instance.
-var container = New()
+// Global is the global instance of the Container.
+var Global = New()
 
-// Singleton binds an abstraction to concrete for further singleton resolves.
-// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
-// The resolver function can have arguments of abstraction that have been declared in the Container already.
+// Singleton calls the same method of the global instance.
 func Singleton(resolver interface{}) error {
-	return container.Singleton(resolver)
+	return Global.Singleton(resolver)
 }
 
-// NamedSingleton binds like the Singleton method but for named bindings.
+// NamedSingleton calls the same method of the global instance.
 func NamedSingleton(name string, resolver interface{}) error {
-	return container.NamedSingleton(name, resolver)
+	return Global.NamedSingleton(name, resolver)
 }
 
-// Transient binds an abstraction to concrete for further transient resolves.
-// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
-// The resolver function can have arguments of abstraction that have been declared in the Container already.
+// Transient calls the same method of the global instance.
 func Transient(resolver interface{}) error {
-	return container.Transient(resolver)
+	return Global.Transient(resolver)
 }
 
-// NamedTransient binds like the Transient method but for named bindings.
+// NamedTransient calls the same method of the global instance.
 func NamedTransient(name string, resolver interface{}) error {
-	return container.NamedTransient(name, resolver)
+	return Global.NamedTransient(name, resolver)
 }
 
-// Reset deletes all the existing bindings and empties the container instance.
+// Reset calls the same method of the global instance.
 func Reset() {
-	container.Reset()
+	Global.Reset()
 }
 
-// Call takes a function (receiver) with one or more arguments of the abstractions (interfaces).
-// It invokes the function (receiver) and passes the related implementations.
+// Call calls the same method of the global instance.
 func Call(receiver interface{}) error {
-	return container.Call(receiver)
+	return Global.Call(receiver)
 }
 
-// Resolve takes an abstraction (interface reference) and fills it with the related implementation.
+// Resolve calls the same method of the global instance.
 func Resolve(abstraction interface{}) error {
-	return container.Resolve(abstraction)
+	return Global.Resolve(abstraction)
 }
 
-// NamedResolve resolves like the Resolve method but for named bindings.
+// NamedResolve calls the same method of the global instance.
 func NamedResolve(abstraction interface{}, name string) error {
-	return container.NamedResolve(abstraction, name)
+	return Global.NamedResolve(abstraction, name)
 }
 
-// Fill takes a struct and resolves the fields with the tag `container:"inject"`
+// Fill calls the same method of the global instance.
 func Fill(receiver interface{}) error {
-	return container.Fill(receiver)
+	return Global.Fill(receiver)
 }
