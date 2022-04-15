@@ -259,6 +259,33 @@ err := c.Call(func(db Database) {
 The rest stays the same.
 The global container is still available.
 
+### Must Helpers
+
+If you believe that the container shouldn't raise any error and you like panics, in this case, Must helpers are for you.
+Must helpers are global methods that panic instead of returning errors.
+
+```go
+c := container.New()
+
+err := container.MustSingleton(c, func() Shape {
+    return &Circle{a: 13}
+})
+
+container.MustCall(c, func(s Shape) {
+    // ...
+})
+
+// Other Must Helpers:
+// container.MustSingleton()
+// container.MustNamedSingleton()
+// container.MustTransient()
+// container.MustNamedTransient()
+// container.MustCall()
+// container.MustResolve()
+// container.MustNamedResolve()
+// container.MustFill()
+```
+
 ### Performance
 The package Container inevitably uses reflection for binding and resolving processes. 
 If performance is a concern, try to bind and resolve the dependencies where it runs only once, like the main and init functions.
