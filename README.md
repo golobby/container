@@ -9,6 +9,13 @@
 GoLobby Container is a lightweight yet powerful IoC (dependency injection) container for Go projects.
 It's built neat, easy-to-use, and performance-in-mind to be your ultimate requirement.
 
+Features:
+- Singleton and Transient bindings
+- Named dependencies (bindings)
+- Resolve by functions, variables, and structs
+- Must helpers that convert errors to panics
+- Global instance for small applications
+
 ## Documentation
 ### Required Go Versions
 It requires Go `v1.11` or newer versions.
@@ -171,6 +178,15 @@ err := container.Call(func(db Database, s Shape) {
   db.Query("...")
   s.Area()
 })
+```
+
+You are able to raise an error in your receiver function, as well.
+
+```go
+err := container.Call(func(db Database) error {
+  return db.Ping()
+})
+// err could be `db.Ping()` error.
 ```
 
 Caution: The `Call()` method does not support named bindings.
