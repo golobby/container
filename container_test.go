@@ -37,60 +37,10 @@ func (m MySQL) Connect() bool {
 
 var instance = container.New()
 
-func TestContainer_With_The_Global_Instance(t *testing.T) {
-	err := container.Singleton(func() Shape {
-		return &Circle{a: 13}
-	})
-	assert.NoError(t, err)
-
-	err = container.Call(func(s Shape) {})
-	assert.NoError(t, err)
-
-	var sh Shape
-	err = container.Resolve(&sh)
-	assert.NoError(t, err)
-
-	err = container.Transient(func() Shape {
-		return &Circle{a: 33}
-	})
-	assert.NoError(t, err)
-
-	err = container.Resolve(&sh)
-	assert.NoError(t, err)
-
-	err = container.NamedSingleton("theCircle", func() Shape {
-		return &Circle{a: 33}
-	})
-	assert.NoError(t, err)
-
-	err = container.NamedResolve(&sh, "theCircle")
-	assert.NoError(t, err)
-
-	err = container.NamedTransient("theCircle", func() Shape {
-		return &Circle{a: 66}
-	})
-	assert.NoError(t, err)
-
-	err = container.NamedResolve(&sh, "theCircle")
-	assert.NoError(t, err)
-
-	myApp := struct {
-		S Shape `container:"type"`
-	}{}
-
-	err = container.Fill(&myApp)
-	assert.NoError(t, err)
-
-	container.Reset()
-}
-
 func TestContainer_Singleton(t *testing.T) {
 	err := instance.Singleton(func() Shape {
 		return &Circle{a: 13}
 	})
-	assert.NoError(t, err)
-
-	err = instance.Singleton(func() {})
 	assert.NoError(t, err)
 
 	err = instance.Call(func(s1 Shape) {
@@ -103,6 +53,11 @@ func TestContainer_Singleton(t *testing.T) {
 		assert.Equal(t, a, 666)
 	})
 	assert.NoError(t, err)
+}
+
+func TestContainer_Singleton_With_Resolve_That_Returns_Nothing(t *testing.T) {
+	err := instance.Singleton(func() {})
+	assert.Error(t, err, "container: resolver function signature is invalid")
 }
 
 func TestContainer_Singleton_With_Resolve_That_Returns_Error(t *testing.T) {
@@ -136,7 +91,7 @@ func TestContainer_Singleton_With_Non_Resolvable_Arguments(t *testing.T) {
 	err := instance.Singleton(func(s Shape) Shape {
 		return &Circle{a: s.GetArea()}
 	})
-	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
+	assert.EqualError(t, err, "container: no concrete found for container_test.Shape")
 }
 
 func TestContainer_NamedSingleton(t *testing.T) {
@@ -167,6 +122,11 @@ func TestContainer_Transient(t *testing.T) {
 		assert.Equal(t, a, 666)
 	})
 	assert.NoError(t, err)
+}
+
+func TestContainer_Transient_With_Resolve_That_Returns_Nothing(t *testing.T) {
+	err := instance.Transient(func() {})
+	assert.Error(t, err, "container: resolver function signature is invalid")
 }
 
 func TestContainer_Transient_With_Resolve_That_Returns_Error(t *testing.T) {
@@ -246,7 +206,35 @@ func TestContainer_Call_With_Second_UnBounded_Argument(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = instance.Call(func(s Shape, d Database) {})
-	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
+	assert.EqualError(t, err, "container: no concrete found for container_test.Database")
+}
+
+func TestContainer_Call_With_A_Returning_Error(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Singleton(func() Shape {
+		return &Circle{}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s Shape) error {
+		return errors.New("app: some context error")
+	})
+	assert.EqualError(t, err, "app: some context error")
+}
+
+func TestContainer_Call_With_Invalid_Signature(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Singleton(func() Shape {
+		return &Circle{}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s Shape) (int, error) {
+		return 13, errors.New("app: some context error")
+	})
+	assert.EqualError(t, err, "container: receiver function signature is invalid")
 }
 
 func TestContainer_Resolve_With_Reference_As_Resolver(t *testing.T) {
