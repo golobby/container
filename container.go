@@ -201,7 +201,15 @@ func (c Container) Call(function interface{}) error {
 		return err
 	}
 
-	reflect.ValueOf(function).Call(arguments)
+	result := reflect.ValueOf(function).Call(arguments)
+
+	// if the receiver returns an error then we'll forward
+	// the return value as the Call() result.
+	if len(result) == 1 && result[0].CanInterface() {
+		if err, ok := result[0].Interface().(error); ok {
+			return err
+		}
+	}
 
 	return nil
 }
