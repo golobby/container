@@ -150,6 +150,9 @@ func (c Container) Call(function interface{}) error {
 	if len(result) == 0 {
 		return nil
 	} else if len(result) == 1 && result[0].CanInterface() {
+		if result[0].IsNil() {
+			return nil
+		}
 		if err, ok := result[0].Interface().(error); ok {
 			return err
 		}
