@@ -223,6 +223,20 @@ func TestContainer_Call_With_A_Returning_Error(t *testing.T) {
 	assert.EqualError(t, err, "app: some context error")
 }
 
+func TestContainer_Call_With_A_Returning_Nil_Error(t *testing.T) {
+	instance.Reset()
+
+	err := instance.Singleton(func() Shape {
+		return &Circle{}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s Shape) error {
+		return nil
+	})
+	assert.Nil(t, err)
+}
+
 func TestContainer_Call_With_Invalid_Signature(t *testing.T) {
 	instance.Reset()
 
