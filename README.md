@@ -261,11 +261,14 @@ The global container is still available.
 
 ### Must Helpers
 
-If you believe that the container shouldn't raise any error and you like panics, in this case, Must helpers are for you.
+You might believe that the container shouldn't raise any error and you prefer panics.
+In this case, Must helpers are for you.
 Must helpers are global methods that panic instead of returning errors.
 
 ```go
 c := container.New()
+// Global instance:
+// c := container.Global
 
 container.MustSingleton(c, func() Shape {
     return &Circle{a: 13}
