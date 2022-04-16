@@ -267,7 +267,7 @@ Must helpers are global methods that panic instead of returning errors.
 ```go
 c := container.New()
 
-err := container.MustSingleton(c, func() Shape {
+container.MustSingleton(c, func() Shape {
     return &Circle{a: 13}
 })
 
