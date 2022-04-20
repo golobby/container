@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -15,11 +16,14 @@ type binding struct {
 	resolver    interface{} // resolver is the function that is responsible for making the concrete.
 	isSingleton bool        // isSingleton is true for singleton bindings
 	concrete    interface{} // concrete is the stored instance for singleton bindings.
+	lock        *sync.RWMutex
 }
 
 // make resolves the binding if needed and returns the resolved concrete.
-func (b binding) make(c Container) (interface{}, error) {
+func (b *binding) make(c Container) (interface{}, error) {
 	if b.isSingleton {
+		b.lock.Lock()
+		defer b.lock.Unlock()
 		if b.concrete == nil {
 			concrete, err := c.invoke(b.resolver)
 			if err != nil {
@@ -34,7 +38,7 @@ func (b binding) make(c Container) (interface{}, error) {
 
 // Container holds the bindings and provides methods to interact with them.
 // It is the entry point in the package.
-type Container map[reflect.Type]map[string]binding
+type Container map[reflect.Type]map[string]*binding
 
 // New creates a new concrete of the Container.
 func New() Container {
@@ -50,11 +54,15 @@ func (c Container) bind(resolver interface{}, name string, isSingleton bool) err
 
 	if reflectedResolver.NumOut() > 0 {
 		if _, exist := c[reflectedResolver.Out(0)]; !exist {
-			c[reflectedResolver.Out(0)] = make(map[string]binding)
+			c[reflectedResolver.Out(0)] = make(map[string]*binding)
 		}
 	}
 
-	c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, isSingleton: isSingleton}
+	c[reflectedResolver.Out(0)][name] = &binding{
+		resolver:    resolver,
+		isSingleton: isSingleton,
+		lock:        &sync.RWMutex{},
+	}
 
 	return nil
 }
