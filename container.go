@@ -12,13 +12,21 @@ import (
 // binding holds a resolver and a concrete (if singleton).
 // It is the break for the Container wall!
 type binding struct {
-	resolver interface{} // resolver is the function that is responsible for making the concrete.
-	concrete interface{} // concrete is the stored instance for singleton bindings.
+	resolver    interface{} // resolver is the function that is responsible for making the concrete.
+	isSingleton bool        // isSingleton is true for singleton bindings
+	concrete    interface{} // concrete is the stored instance for singleton bindings.
 }
 
 // make resolves the binding if needed and returns the resolved concrete.
 func (b binding) make(c Container) (interface{}, error) {
-	if b.concrete != nil {
+	if b.isSingleton {
+		if b.concrete == nil {
+			concrete, err := c.invoke(b.resolver)
+			if err != nil {
+				return nil, err
+			}
+			b.concrete = concrete
+		}
 		return b.concrete, nil
 	}
 	return c.invoke(b.resolver)
@@ -46,16 +54,7 @@ func (c Container) bind(resolver interface{}, name string, isSingleton bool) err
 		}
 	}
 
-	concrete, err := c.invoke(resolver)
-	if err != nil {
-		return err
-	}
-
-	if isSingleton {
-		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, concrete: concrete}
-	} else {
-		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver}
-	}
+	c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, isSingleton: isSingleton}
 
 	return nil
 }
@@ -91,7 +90,10 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := reflectedFunction.In(i)
 		if concrete, exist := c[abstraction][""]; exist {
-			instance, _ := concrete.make(c)
+			instance, err := concrete.make(c)
+			if err != nil {
+				return nil, err
+			}
 			arguments[i] = reflect.ValueOf(instance)
 		} else {
 			return nil, errors.New("container: no concrete found for " + abstraction.String())
@@ -220,7 +222,10 @@ func (c Container) Fill(structure interface{}) error {
 					}
 
 					if concrete, exist := c[f.Type()][name]; exist {
-						instance, _ := concrete.make(c)
+						instance, err := concrete.make(c)
+						if err != nil {
+							return err
+						}
 
 						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 						ptr.Set(reflect.ValueOf(instance))
