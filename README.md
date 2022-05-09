@@ -94,18 +94,18 @@ The following examples demonstrate some named bindings.
 
 ```go
 // Singleton
-err := container.NamedSingleton("square" func() Shape {
+err := container.NamedSingleton("square", func() Shape {
     return &Rectangle{}
 })
-err := container.NamedSingleton("rounded" func() Shape {
+err := container.NamedSingleton("rounded", func() Shape {
     return &Circle{}
 })
 
 // Transient
-err := container.NamedTransient("sql" func() Database {
+err := container.NamedTransient("sql", func() Database {
     return &MySQL{}
 })
-err := container.NamedTransient("noSql" func() Database {
+err := container.NamedTransient("noSql", func() Database {
     return &MongoDB{}
 })
 ```
@@ -117,7 +117,7 @@ In this case, you can return the error as the second return value like the examp
 
 ```go
 err := container.Transient(func() (Shape, error) {
-  return nil, errors.New("my-app: cannot create a Shaple implementation")
+  return nil, errors.New("my-app: cannot create a Shape implementation")
 })
 ```
 
@@ -261,7 +261,7 @@ The global container is still available.
 
 ### Must Helpers
 
-You might believe that the container shouldn't raise any error and you prefer panics.
+You might believe that the container shouldn't raise any error and/or you prefer panics.
 In this case, Must helpers are for you.
 Must helpers are global methods that panic instead of returning errors.
 
