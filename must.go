@@ -7,9 +7,23 @@ func MustSingleton(c Container, resolver interface{}) {
 	}
 }
 
+// MustSingleton wraps the `SingletonLazy` method and panics on errors instead of returning the errors.
+func MustSingletonLazy(c Container, resolver interface{}) {
+	if err := c.SingletonLazy(resolver); err != nil {
+		panic(err)
+	}
+}
+
 // MustNamedSingleton wraps the `NamedSingleton` method and panics on errors instead of returning the errors.
 func MustNamedSingleton(c Container, name string, resolver interface{}) {
 	if err := c.NamedSingleton(name, resolver); err != nil {
+		panic(err)
+	}
+}
+
+// MustNamedSingleton wraps the `NamedSingletonLazy` method and panics on errors instead of returning the errors.
+func MustNamedSingletonLazy(c Container, name string, resolver interface{}) {
+	if err := c.NamedSingletonLazy(name, resolver); err != nil {
 		panic(err)
 	}
 }
@@ -21,9 +35,23 @@ func MustTransient(c Container, resolver interface{}) {
 	}
 }
 
+// MustTransientLazy wraps the `TransientLazy` method and panics on errors instead of returning the errors.
+func MustTransientLazy(c Container, resolver interface{}) {
+	if err := c.TransientLazy(resolver); err != nil {
+		panic(err)
+	}
+}
+
 // MustNamedTransient wraps the `NamedTransient` method and panics on errors instead of returning the errors.
 func MustNamedTransient(c Container, name string, resolver interface{}) {
 	if err := c.NamedTransient(name, resolver); err != nil {
+		panic(err)
+	}
+}
+
+// MustNamedTransient wraps the `NamedTransientLazy` method and panics on errors instead of returning the errors.
+func MustNamedTransientLazy(c Container, name string, resolver interface{}) {
+	if err := c.NamedTransientLazy(name, resolver); err != nil {
 		panic(err)
 	}
 }

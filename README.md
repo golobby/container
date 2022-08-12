@@ -14,6 +14,7 @@ Features:
 - Named dependencies (bindings)
 - Resolve by functions, variables, and structs
 - Must helpers that convert errors to panics
+- Optional lazy loading of bindings
 - Global instance for small applications
 
 ## Documentation
@@ -280,14 +281,29 @@ container.MustCall(c, func(s Shape) {
 
 // Other Must Helpers:
 // container.MustSingleton()
+// container.MustSingletonLazy()
 // container.MustNamedSingleton()
+// container.MustNamedSingletonLazy()
 // container.MustTransient()
+// container.MustTransientLazy()
 // container.MustNamedTransient()
+// container.MustNamedTransientLazy()
 // container.MustCall()
 // container.MustResolve()
 // container.MustNamedResolve()
 // container.MustFill()
 ```
+
+### Lazy Binding
+Both the named and normal `Singleton` and `Transient` binding calls have a lazy version.
+Lazy versions defer calling the provided resolver function until the first time the dependency is resolved.
+For singletons the resolver function is called only once and the result is stored. Transient
+
+Lazy binding calls include:
+* container.SingletonLazy()
+* container.NamedSingletonLazy()
+* container.TransientLazy()
+* container.NamedTransientLazy()
 
 ### Performance
 The package Container inevitably uses reflection for binding and resolving processes. 
