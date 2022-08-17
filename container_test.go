@@ -73,6 +73,13 @@ func TestContainer_SingletonLazy(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_Singleton_With_Missing_Dependency_Resolve(t *testing.T) {
+	err := instance.Singleton(func(db Database) Shape {
+		return &Circle{a: 13}
+	})
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Database")
+}
+
 func TestContainer_Singleton_With_Resolve_That_Returns_Nothing(t *testing.T) {
 	err := instance.Singleton(func() {})
 	assert.Error(t, err, "container: resolver function signature is invalid")
@@ -339,6 +346,25 @@ func TestContainer_Call_With_Multiple_Resolving(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestContainer_Call_With_Dependency_Missing_In_Chain(t *testing.T) {
+	var instance = container.New()
+	err := instance.SingletonLazy(func() (Database, error) {
+		var s Shape
+		if err := instance.Resolve(&s); err != nil {
+			return nil, err
+		}
+		return &MySQL{}, nil
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(m Database) {
+		if _, ok := m.(*MySQL); !ok {
+			t.Error("Expected MySQL")
+		}
+	})
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
+}
+
 func TestContainer_Call_With_Unsupported_Receiver_It_Should_Fail(t *testing.T) {
 	err := instance.Call("STRING!")
 	assert.EqualError(t, err, "container: invalid function")
@@ -548,4 +574,36 @@ func TestContainer_Fill_With_Invalid_Pointer_It_Should_Fail(t *testing.T) {
 	var s Shape
 	err := instance.Fill(s)
 	assert.EqualError(t, err, "container: invalid structure")
+}
+
+func TestContainer_Fill_With_Dependency_Missing_In_Chain(t *testing.T) {
+	var instance = container.New()
+	err := instance.Singleton(func() Shape {
+		return &Circle{a: 5}
+	})
+	assert.NoError(t, err)
+
+	err = instance.NamedSingletonLazy("C", func() (Shape, error) {
+		var s Shape
+		if err := instance.NamedResolve(&s, "foo"); err != nil {
+			return nil, err
+		}
+		return &Circle{a: 5}, nil
+	})
+	assert.NoError(t, err)
+
+	err = instance.Singleton(func() Database {
+		return &MySQL{}
+	})
+	assert.NoError(t, err)
+
+	myApp := struct {
+		S Shape    `container:"type"`
+		D Database `container:"type"`
+		C Shape    `container:"name"`
+		X string
+	}{}
+
+	err = instance.Fill(&myApp)
+	assert.EqualError(t, err, "container: no concrete found for: container_test.Shape")
 }

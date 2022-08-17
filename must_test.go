@@ -61,8 +61,7 @@ func TestMustTransientLazy_It_Should_Panic_On_Error(t *testing.T) {
 	c := container.New()
 
 	defer func() { recover() }()
-	container.MustTransientLazy(c, func() (Shape, error) {
-		return nil, errors.New("error")
+	container.MustTransientLazy(c, func() {
 	})
 
 	var resVal Shape
@@ -89,8 +88,7 @@ func TestMustNamedTransientLazy_It_Should_Panic_On_Error(t *testing.T) {
 	c := container.New()
 
 	defer func() { recover() }()
-	container.MustNamedTransientLazy(c, "name", func() (Shape, error) {
-		return nil, errors.New("error")
+	container.MustNamedTransientLazy(c, "name", func() {
 	})
 
 	var resVal Shape
