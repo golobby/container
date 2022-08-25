@@ -1,15 +1,25 @@
 package container_test
 
 import (
+	"testing"
+
 	"github.com/golobby/container/v3"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestSingleton(t *testing.T) {
 	container.Reset()
 
 	err := container.Singleton(func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+}
+
+func TestSingletonLazy(t *testing.T) {
+	container.Reset()
+
+	err := container.SingletonLazy(func() Shape {
 		return &Circle{a: 13}
 	})
 	assert.NoError(t, err)
@@ -24,6 +34,15 @@ func TestNamedSingleton(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestNamedSingletonLazy(t *testing.T) {
+	container.Reset()
+
+	err := container.NamedSingletonLazy("rounded", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+}
+
 func TestTransient(t *testing.T) {
 	container.Reset()
 
@@ -33,10 +52,28 @@ func TestTransient(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestTransientLazy(t *testing.T) {
+	container.Reset()
+
+	err := container.TransientLazy(func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+}
+
 func TestNamedTransient(t *testing.T) {
 	container.Reset()
 
 	err := container.NamedTransient("rounded", func() Shape {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+}
+
+func TestNamedTransientLazy(t *testing.T) {
+	container.Reset()
+
+	err := container.NamedTransientLazy("rounded", func() Shape {
 		return &Circle{a: 13}
 	})
 	assert.NoError(t, err)

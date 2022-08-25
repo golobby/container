@@ -9,24 +9,31 @@ import (
 	"unsafe"
 )
 
-// binding holds a resolver and a concrete (if singleton).
+// binding holds a resolver and a concrete (if already resolved).
 // It is the break for the Container wall!
 type binding struct {
-	resolver interface{} // resolver is the function that is responsible for making the concrete.
-	concrete interface{} // concrete is the stored instance for singleton bindings.
+	resolver    interface{} // resolver is the function that is responsible for making the concrete.
+	concrete    interface{} // concrete is the stored instance for singleton bindings.
+	isSingleton bool        // isSingleton is true if the binding is a singleton.
 }
 
 // make resolves the binding if needed and returns the resolved concrete.
-func (b binding) make(c Container) (interface{}, error) {
+func (b *binding) make(c Container) (interface{}, error) {
 	if b.concrete != nil {
 		return b.concrete, nil
 	}
-	return c.invoke(b.resolver)
+
+	retVal, err := c.invoke(b.resolver)
+	if b.isSingleton {
+		b.concrete = retVal
+	}
+
+	return retVal, err
 }
 
 // Container holds the bindings and provides methods to interact with them.
 // It is the entry point in the package.
-type Container map[reflect.Type]map[string]binding
+type Container map[reflect.Type]map[string]*binding
 
 // New creates a new concrete of the Container.
 func New() Container {
@@ -34,7 +41,7 @@ func New() Container {
 }
 
 // bind maps an abstraction to concrete and instantiates if it is a singleton binding.
-func (c Container) bind(resolver interface{}, name string, isSingleton bool) error {
+func (c Container) bind(resolver interface{}, name string, isSingleton bool, isLazy bool) error {
 	reflectedResolver := reflect.TypeOf(resolver)
 	if reflectedResolver.Kind() != reflect.Func {
 		return errors.New("container: the resolver must be a function")
@@ -42,19 +49,44 @@ func (c Container) bind(resolver interface{}, name string, isSingleton bool) err
 
 	if reflectedResolver.NumOut() > 0 {
 		if _, exist := c[reflectedResolver.Out(0)]; !exist {
-			c[reflectedResolver.Out(0)] = make(map[string]binding)
+			c[reflectedResolver.Out(0)] = make(map[string]*binding)
 		}
 	}
 
-	concrete, err := c.invoke(resolver)
-	if err != nil {
+	if err := c.validateResolverFunction(reflectedResolver); err != nil {
 		return err
 	}
 
+	var concrete interface{}
+	if !isLazy {
+		var err error
+		concrete, err = c.invoke(resolver)
+		if err != nil {
+			return err
+		}
+	}
+
 	if isSingleton {
-		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver, concrete: concrete}
+		c[reflectedResolver.Out(0)][name] = &binding{resolver: resolver, concrete: concrete, isSingleton: isSingleton}
 	} else {
-		c[reflectedResolver.Out(0)][name] = binding{resolver: resolver}
+		c[reflectedResolver.Out(0)][name] = &binding{resolver: resolver, isSingleton: isSingleton}
+	}
+
+	return nil
+}
+
+func (c Container) validateResolverFunction(funcType reflect.Type) error {
+	retCount := funcType.NumOut()
+
+	if retCount == 0 || retCount > 2 {
+		return errors.New("container: resolver function signature is invalid - it must return abstract, or abstract and error")
+	}
+
+	resolveType := funcType.Out(0)
+	for i := 0; i < funcType.NumIn(); i++ {
+		if funcType.In(i) == resolveType {
+			return fmt.Errorf("container: resolver function signature is invalid - depends on abstract it returns")
+		}
 	}
 
 	return nil
@@ -69,17 +101,12 @@ func (c Container) invoke(function interface{}) (interface{}, error) {
 	}
 
 	values := reflect.ValueOf(function).Call(arguments)
-
-	if len(values) == 1 || len(values) == 2 {
-		if len(values) == 2 && values[1].CanInterface() {
-			if err, ok := values[1].Interface().(error); ok {
-				return values[0].Interface(), err
-			}
+	if len(values) == 2 && values[1].CanInterface() {
+		if err, ok := values[1].Interface().(error); ok {
+			return values[0].Interface(), err
 		}
-		return values[0].Interface(), nil
 	}
-
-	return nil, errors.New("container: resolver function signature is invalid")
+	return values[0].Interface(), nil
 }
 
 // arguments returns the list of resolved arguments for a function.
@@ -91,10 +118,13 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := reflectedFunction.In(i)
 		if concrete, exist := c[abstraction][""]; exist {
-			instance, _ := concrete.make(c)
+			instance, err := concrete.make(c)
+			if err != nil {
+				return nil, err
+			}
 			arguments[i] = reflect.ValueOf(instance)
 		} else {
-			return nil, errors.New("container: no concrete found for " + abstraction.String())
+			return nil, errors.New("container: no concrete found for: " + abstraction.String())
 		}
 	}
 
@@ -112,24 +142,52 @@ func (c Container) Reset() {
 // It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have been declared in the Container already.
 func (c Container) Singleton(resolver interface{}) error {
-	return c.bind(resolver, "", true)
+	return c.bind(resolver, "", true, false)
+}
+
+// SingletonLazy binds an abstraction to concrete lazily in singleton mode.
+// The concrete is resolved only when the abstraction is resolved for the first time.
+// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have been declared in the Container already.
+func (c Container) SingletonLazy(resolver interface{}) error {
+	return c.bind(resolver, "", true, true)
 }
 
 // NamedSingleton binds a named abstraction to concrete in singleton mode.
 func (c Container) NamedSingleton(name string, resolver interface{}) error {
-	return c.bind(resolver, name, true)
+	return c.bind(resolver, name, true, false)
+}
+
+// NamedSingleton binds a named abstraction to concrete lazily in singleton mode.
+// The concrete is resolved only when the abstraction is resolved for the first time.
+func (c Container) NamedSingletonLazy(name string, resolver interface{}) error {
+	return c.bind(resolver, name, true, true)
 }
 
 // Transient binds an abstraction to concrete in transient mode.
 // It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have been declared in the Container already.
 func (c Container) Transient(resolver interface{}) error {
-	return c.bind(resolver, "", false)
+	return c.bind(resolver, "", false, false)
+}
+
+// TransientLazy binds an abstraction to concrete lazily in transient mode.
+// Normally the resolver will be called during registration, but that is skipped in lazy mode.
+// It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
+// The resolver function can have arguments of abstraction that have been declared in the Container already.
+func (c Container) TransientLazy(resolver interface{}) error {
+	return c.bind(resolver, "", false, true)
+}
+
+// NamedTransient binds a named abstraction to concrete lazily in transient mode.
+func (c Container) NamedTransient(name string, resolver interface{}) error {
+	return c.bind(resolver, name, false, false)
 }
 
 // NamedTransient binds a named abstraction to concrete in transient mode.
-func (c Container) NamedTransient(name string, resolver interface{}) error {
-	return c.bind(resolver, name, false)
+// Normally the resolver will be called during registration, but that is skipped in lazy mode.
+func (c Container) NamedTransientLazy(name string, resolver interface{}) error {
+	return c.bind(resolver, name, false, true)
 }
 
 // Call takes a receiver function with one or more arguments of the abstractions (interfaces).
@@ -214,13 +272,14 @@ func (c Container) Fill(structure interface{}) error {
 					} else if t == "name" {
 						name = s.Type().Field(i).Name
 					} else {
-						return errors.New(
-							fmt.Sprintf("container: %v has an invalid struct tag", s.Type().Field(i).Name),
-						)
+						return fmt.Errorf("container: %v has an invalid struct tag", s.Type().Field(i).Name)
 					}
 
 					if concrete, exist := c[f.Type()][name]; exist {
-						instance, _ := concrete.make(c)
+						instance, err := concrete.make(c)
+						if err != nil {
+							return err
+						}
 
 						ptr := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 						ptr.Set(reflect.ValueOf(instance))
@@ -228,7 +287,7 @@ func (c Container) Fill(structure interface{}) error {
 						continue
 					}
 
-					return errors.New(fmt.Sprintf("container: cannot make %v field", s.Type().Field(i).Name))
+					return fmt.Errorf("container: cannot make %v field", s.Type().Field(i).Name)
 				}
 			}
 
