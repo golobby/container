@@ -28,6 +28,12 @@ To install this package, run the following command in your project directory.
 go get github.com/golobby/container/v3
 ```
 
+Next, include it in your application:
+
+```go
+import "github.com/golobby/container/v3"
+```
+
 ### Introduction
 GoLobby Container is used to bind abstractions to their implementations.
 Binding is the process of introducing appropriate concretes (implementations) of abstractions to an IoC container.
