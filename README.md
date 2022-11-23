@@ -301,15 +301,15 @@ container.MustCall(c, func(s Shape) {
 ```
 
 ### Lazy Binding
-Both the named and normal `Singleton` and `Transient` binding calls have a lazy version.
-Lazy versions defer calling the provided resolver function until the first time the dependency is resolved.
-For singletons the resolver function is called only once and the result is stored. Transient
+Both the singleton and transient binding calls have a lazy version.
+Lazy versions defer calling the provided resolver function until the first call.
+For singleton bindings, It calls the resolver function only once and stores the result.
 
-Lazy binding calls include:
-* container.SingletonLazy()
-* container.NamedSingletonLazy()
-* container.TransientLazy()
-* container.NamedTransientLazy()
+Lazy binding methods:
+* `container.SingletonLazy()`
+* `container.NamedSingletonLazy()`
+* `container.TransientLazy()`
+* `container.NamedTransientLazy()`
 
 ### Performance
 The package Container inevitably uses reflection for binding and resolving processes. 
