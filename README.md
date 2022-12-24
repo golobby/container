@@ -16,6 +16,7 @@ Features:
 - Must helpers that convert errors to panics
 - Optional lazy loading of bindings
 - Global instance for small applications
+- 100% Test coverage!
 
 ## Documentation
 ### Required Go Versions
