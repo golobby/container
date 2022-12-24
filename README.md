@@ -206,9 +206,9 @@ The example below expresses how the `Fill()` method works.
 ```go
 type App struct {
     mailer Mailer   `container:"type"`
-    sql Database    `container:"name"`
-    noSql Database  `container:"name"`
-    x int
+    sql    Database `container:"name"`
+    noSql  Database `container:"name"`
+    other  int
 }
 
 myApp := App{}
@@ -222,7 +222,7 @@ err := container.Fill(&myApp)
 // `myApp.sql` will be a sql implementation of the Database interface
 // `myApp.noSql` will be a noSql implementation of the Database interface
 
-// `myApp.x` will be ignored since it has no `container` tag
+// `myApp.other` will be ignored since it has no `container` tag
 ```
 
 #### Binding time
