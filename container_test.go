@@ -13,6 +13,10 @@ type Shape interface {
 	GetArea() int
 }
 
+type ReadOnlyShape interface {
+	GetArea() int
+}
+
 type Circle struct {
 	a int
 }
@@ -51,6 +55,28 @@ func TestContainer_Singleton(t *testing.T) {
 	err = instance.Call(func(s2 Shape) {
 		a := s2.GetArea()
 		assert.Equal(t, a, 666)
+	})
+	assert.NoError(t, err)
+}
+
+func TestContainer_Singleton_Bind_As_Struct_But_Resolve_By_Interface(t *testing.T) {
+	instance := container.New()
+
+	err := instance.Singleton(func() *Circle {
+		return &Circle{a: 13}
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s Shape) {
+		a := s.GetArea()
+		assert.Equal(t, 13, a)
+		s.SetArea(666)
+	})
+	assert.NoError(t, err)
+
+	err = instance.Call(func(s ReadOnlyShape) {
+		a := s.GetArea()
+		assert.Equal(t, 666, a)
 	})
 	assert.NoError(t, err)
 }

@@ -117,7 +117,7 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 
 	for i := 0; i < argumentsCount; i++ {
 		abstraction := reflectedFunction.In(i)
-		if concrete, exist := c[abstraction][""]; exist {
+		if concrete, exist := c.concrete(abstraction); exist {
 			instance, err := concrete.make(c)
 			if err != nil {
 				return nil, err
@@ -129,6 +129,19 @@ func (c Container) arguments(function interface{}) ([]reflect.Value, error) {
 	}
 
 	return arguments, nil
+}
+
+func (c Container) concrete(abstraction reflect.Type) (*binding, bool) {
+	if concrete, exist := c[abstraction][""]; exist {
+		return concrete, true
+	}
+	for boundAbstraction, namedConcretes := range c {
+		if boundAbstraction.Implements(abstraction) {
+			concrete, exists := namedConcretes[""]
+			return concrete, exists
+		}
+	}
+	return nil, false
 }
 
 // Reset deletes all the existing bindings and empties the container.
