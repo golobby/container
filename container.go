@@ -239,7 +239,7 @@ func (c Container) NamedResolve(abstraction interface{}, name string) error {
 				reflect.ValueOf(abstraction).Elem().Set(reflect.ValueOf(instance))
 				return nil
 			} else {
-				return err
+				return fmt.Errorf("container: encountered error while making concrete for: %s. Error encountered: %w", elem.String(), err)
 			}
 		}
 
