@@ -138,7 +138,7 @@ func (c Container) Reset() {
 	}
 }
 
-// close Calls the close method on all singleton instances within the container.
+// Close Calls the close method on all singleton instances within the container.
 func (c Container) Close() error {
 	for _, abstraction := range c {
 		for _, concrete := range abstraction {
