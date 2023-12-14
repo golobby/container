@@ -48,6 +48,11 @@ func Reset() {
 	Global.Reset()
 }
 
+// Close calls the same method of the global concrete.
+func Close() error {
+	return Global.Close()
+}
+
 // Call calls the same method of the global concrete.
 func Call(receiver interface{}) error {
 	return Global.Call(receiver)

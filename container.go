@@ -138,6 +138,35 @@ func (c Container) Reset() {
 	}
 }
 
+// close Calls the close method on all singleton instances within the container.
+func (c Container) Close() error {
+	for _, abstraction := range c {
+		for _, concrete := range abstraction {
+			if !concrete.isSingleton {
+				continue
+			}
+			instance, err := concrete.make(c)
+			if err != nil {
+				return err
+			}
+
+			v := reflect.ValueOf(instance)
+			mm := v.MethodByName("Close")
+			if mm.IsValid() {
+				res := mm.Call(nil)
+				if len(res) > 0 {
+					errVal := res[0]
+					if errVal.Type().Name() == "error" && errVal.Interface() != nil {
+						err, _ := errVal.Interface().(error)
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // Singleton binds an abstraction to concrete in singleton mode.
 // It takes a resolver function that returns the concrete, and its return type matches the abstraction (interface).
 // The resolver function can have arguments of abstraction that have been declared in the Container already.
